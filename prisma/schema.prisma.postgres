@@ -1,0 +1,149 @@
+// DarkTalk Prisma Schema - PostgreSQL
+// Production-ready schema for Oracle Cloud / AWS EC2 deployment
+// Replace SQLite dev schema by renaming this file: schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================
+// SESSION - 2 hour TTL, persists to DB
+// ===========================================
+model Session {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  darkId    String   @unique
+  handle    String   @default("Anon")
+  ipHash    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  memberships RoomMember[]
+  messages    Message[]
+
+  @@index([expiresAt])
+  @@index([token])
+  @@index([darkId])
+}
+
+// ===========================================
+// ROOM - 1:1 chat with TTL
+// ===========================================
+model Room {
+  id        String        @id @default(uuid())
+  darkIdA   String
+  darkIdB   String?
+  status    RoomStatus    @default(PENDING)
+  createdAt DateTime      @default(now())
+  expiresAt DateTime
+
+  members  RoomMember[]
+  messages Message[]
+
+  @@index([expiresAt])
+  @@index([status, expiresAt])
+  @@index([darkIdA])
+  @@index([darkIdB])
+}
+
+// ===========================================
+// ROOM_STATUS (typed enum - PG native enum)
+// ===========================================
+enum RoomStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  EXPIRED
+}
+
+// ===========================================
+// ROOM MEMBER - join table (Room <-> Session)
+// ===========================================
+model RoomMember {
+  roomId    String
+  sessionId String
+  joinedAt  DateTime @default(now())
+
+  room    Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, sessionId])
+  @@index([sessionId])
+}
+
+// ===========================================
+// MESSAGE - TEXT / IMAGE / VIDEO / FILE / VOICE / SYSTEM
+// Last 100 messages per room kept in DB (others purged)
+// ===========================================
+model Message {
+  id         String       @id @default(uuid())
+  roomId     String
+  senderId   String
+  type       MessageType
+  body       String?
+  recalledAt DateTime?
+  createdAt  DateTime     @default(now())
+
+  room        Room         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender      Session      @relation(fields: [senderId], references: [id])
+  attachments Attachment[]
+
+  @@index([roomId, createdAt])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+// ===========================================
+// MESSAGE_TYPE
+// ===========================================
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  FILE
+  VOICE
+  SYSTEM
+}
+
+// ===========================================
+// ATTACHMENT - file metadata (file in R2)
+// Auto-expire via cron: messages > 2h → attachments deleted
+// ===========================================
+model Attachment {
+  id         String   @id @default(uuid())
+  messageId  String
+  storageKey String
+  mimeType   String
+  byteSize   Int
+  width      Int?
+  height     Int?
+  durationMs Int?
+  checksum   String
+  createdAt  DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([createdAt])
+  @@index([storageKey])
+}
+
+// ===========================================
+// CLEANUP LOG - audit trail of purged data
+// (Optional, for debugging purge behavior)
+// ===========================================
+model CleanupLog {
+  id        String   @id @default(uuid())
+  entityType String  // 'MESSAGE' | 'ATTACHMENT' | 'SESSION' | 'ROOM'
+  entityId  String
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([entityType, createdAt])
+  @@index([createdAt])
+}

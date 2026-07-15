@@ -1,0 +1,67 @@
+# =============================================================================
+# DarkTalk - Production Dockerfile
+# Multi-stage build optimized for Oracle Cloud / AWS free tier (ARM or x86)
+# =============================================================================
+
+# -------- 1. Base image (Debian, supports both ARM64 and x86_64) --------
+FROM node:20-bookworm-slim AS base
+
+# Install OpenSSL + Postgres client + Python (for native modules)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# -------- 2. Dependencies --------
+FROM base AS deps
+
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev
+
+# -------- 3. Build (with dev deps for Prisma + tsx) --------
+FROM base AS builder
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY prisma ./prisma
+COPY src ./src
+COPY next.config.js ./
+COPY tsconfig.json ./
+
+# Generate Prisma client (for postgres provider)
+RUN npx prisma generate
+
+# Build Next.js
+RUN npm run build
+
+# -------- 4. Production runner --------
+FROM base AS runner
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy built artifacts
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+USER nextjs
+
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+CMD ["node", "server.js"]
