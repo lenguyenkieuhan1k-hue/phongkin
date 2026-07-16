@@ -99,13 +99,15 @@ export function verifySepaySignature(
   apiKey: string
 ): boolean {
   try {
+    // Strip "sha256=" prefix if present
+    const cleanSig = signature.startsWith('sha256=') ? signature.slice(7) : signature;
+
     const expectedSignature = crypto
       .createHmac('sha256', apiKey)
       .update(rawBody)
       .digest('hex');
 
-    // Use timing-safe comparison to prevent timing attacks
-    const signatureBuffer = Buffer.from(signature, 'hex');
+    const signatureBuffer = Buffer.from(cleanSig, 'hex');
     const expectedBuffer = Buffer.from(expectedSignature, 'hex');
 
     if (signatureBuffer.length !== expectedBuffer.length) {

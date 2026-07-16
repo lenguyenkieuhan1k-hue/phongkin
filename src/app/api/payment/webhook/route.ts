@@ -20,19 +20,20 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
       }
 
-      // Debug: log signature info
-      const expectedSig = crypto.createHmac('sha256', apiKey).update(rawBody).digest('hex');
-      console.log('[webhook] sig debug:', { 
-        receivedSig: signature.slice(0, 20) + '...', 
-        expectedSig: expectedSig.slice(0, 20) + '...',
-        match: signature === expectedSig,
-        apiKeyLen: apiKey.length 
-      });
+    // SePay gửi signature với prefix "sha256=" → strip trước khi verify
+    const rawSignature = signature.startsWith('sha256=') ? signature.slice(7) : signature;
+    const expectedSig = crypto.createHmac('sha256', apiKey).update(rawBody).digest('hex');
+    console.log('[webhook] sig debug:', {
+      receivedSig: rawSignature.slice(0, 20) + '...',
+      expectedSig: expectedSig.slice(0, 20) + '...',
+      match: rawSignature === expectedSig,
+      apiKeyLen: apiKey.length
+    });
 
-      if (!verifySepaySignature(rawBody, signature, apiKey)) {
-        console.log('[webhook] FAIL: invalid signature');
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-      }
+    if (!verifySepaySignature(rawBody, rawSignature, apiKey)) {
+      console.log('[webhook] FAIL: invalid signature');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
       console.log('[webhook] signature OK');
     } else {
       console.log('[webhook] no API key, skipping signature check');
