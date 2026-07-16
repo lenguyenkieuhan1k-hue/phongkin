@@ -21,8 +21,8 @@ const securityHeaders = {
 };
 
 const cspHeader = dev
-  ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://qr.sepay.vn; media-src 'self' data: blob:; connect-src 'self' ws: wss: https://qr.sepay.vn; frame-src 'none'; object-src 'none'"
-  : "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://qr.sepay.vn; media-src 'self' data: blob:; connect-src 'self' ws: wss: https://qr.sepay.vn; frame-src 'none'; object-src 'none'";
+  ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://qr.sepay.vn; media-src 'self' data: blob:; connect-src 'self' ws: wss: https://qr.sepay.vn https://*.onrender.com https://phongkin.pro; frame-src 'none'; object-src 'none'"
+  : "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://qr.sepay.vn; media-src 'self' data: blob:; connect-src 'self' ws: wss: https://qr.sepay.vn https://*.onrender.com https://phongkin.pro; frame-src 'none'; object-src 'none'";
 
 const hstsHeader = dev
   ? ''
