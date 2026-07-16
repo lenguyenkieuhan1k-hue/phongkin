@@ -1,0 +1,15 @@
+[railway]
+  builder = "docker"
+  develop = null
+
+[deploy]
+  startCommand = "npm start"
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 10
+
+[deploy.healthcheck]
+  path = "/"
+  port = 8080
+
+[settings]
+  PORT = 8080
