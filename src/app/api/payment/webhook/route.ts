@@ -1,51 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { handleWebhookService } from '@/services/payment.service';
 import { verifySepaySignature } from '@/lib/sepay';
 import type { SepayWebhookPayload } from '@/lib/sepay';
 
 export async function POST(request: NextRequest) {
   try {
-    // Lấy raw body text TRƯỚC khi parse JSON
     const rawBody = await request.text();
     const payload = JSON.parse(rawBody) as SepayWebhookPayload;
-    console.log('[webhook] POST received:', rawBody);
 
-    // Verify SePay webhook signature
-    const apiKey = process.env.SEPAY_API_KEY;
-    if (apiKey && apiKey !== 'dev_sandbox_key') {
-      const signature = request.headers.get('x-sepay-signature');
+    // Verify HMAC-SHA256 signature
+    const secret = process.env.SEPAY_WEBHOOK_SECRET;
+    const signature = request.headers.get('x-sepay-signature');
+    const timestamp = request.headers.get('x-sepay-timestamp');
+
+    // Nếu có secret → verify bắt buộc
+    if (secret) {
       if (!signature) {
-        console.log('[webhook] FAIL: missing signature header');
         return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
       }
-
-    // SePay gửi signature với prefix "sha256=" → strip trước khi verify
-    const rawSignature = signature.startsWith('sha256=') ? signature.slice(7) : signature;
-    const expectedSig = crypto.createHmac('sha256', apiKey).update(rawBody).digest('hex');
-    console.log('[webhook] sig debug:', {
-      receivedSig: rawSignature.slice(0, 20) + '...',
-      expectedSig: expectedSig.slice(0, 20) + '...',
-      match: rawSignature === expectedSig,
-      apiKeyLen: apiKey.length
-    });
-
-    if (!verifySepaySignature(rawBody, rawSignature, apiKey)) {
-      console.log('[webhook] FAIL: invalid signature');
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-    }
+      const result = verifySepaySignature(rawBody, signature, secret, timestamp);
+      if (!result.valid) {
+        console.log('[webhook] signature FAIL:', result.reason);
+        return NextResponse.json({ error: result.reason }, { status: 401 });
+      }
       console.log('[webhook] signature OK');
     } else {
-      console.log('[webhook] no API key, skipping signature check');
+      console.log('[webhook] no SEPAY_WEBHOOK_SECRET, skipping verification');
     }
 
     const result = await handleWebhookService(payload);
-    console.log('[webhook] result:', result);
-
     if (!result.success) {
+      console.log('[webhook] handle FAIL:', result.message);
       return NextResponse.json({ error: result.message }, { status: 400 });
     }
 
+    console.log('[webhook] OK:', { paymentId: result.paymentId, roomId: result.roomId });
     return NextResponse.json({
       success: true,
       paymentId: result.paymentId,

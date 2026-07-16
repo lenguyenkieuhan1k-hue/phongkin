@@ -12,8 +12,7 @@
  *   SEPAY_ACCOUNT_NUMBER  - Số TK nhận tiền (VD: 0123456789)
  *   SEPAY_BANK            - Mã ngân hàng (VD: MBBank, Vietcombank)
  *   SEPAY_ACCOUNT_NAME    - Tên chủ TK
- *   SEPAY_WEBHOOK_URL     - URL server nhận callback (chỉ dùng cho info)
- *   SEPAY_API_KEY         - API key SePay (cho webhook verify)
+ *   SEPAY_WEBHOOK_SECRET  - HMAC-SHA256 secret key cho webhook
  */
 
 import crypto from 'crypto';
@@ -35,14 +34,17 @@ export interface SepayWebhookPayload {
   gateway?: string;
   transactionDate?: string;
   accountNumber?: string;
+  subAccount?: string | null;
+  code?: string | null;
   content?: string;
+  description?: string;
   transferType?: 'in' | 'out';
   transferAmount?: number;
   referenceCode?: string;
+  accumulated?: number;
 }
 
 export function buildSepayReference(paymentId: string): string {
-  // Format: PK <paymentId8>  → nội dung CK dễ nhận biết + dễ parse
   const short = paymentId.replace(/-/g, '').slice(0, 8).toUpperCase();
   return `PK ${short}`;
 }
@@ -52,13 +54,12 @@ export function buildQrContent(params: {
   content: string;
 }): string {
   const { amount, content } = params;
-  // URL template VietQR → SePay sẽ render ảnh QR
   return `https://qr.sepay.vn/img?acc=${SEPAY_ACCOUNT_NUMBER}&bank=${SEPAY_BANK}&amount=${amount}&des=${encodeURIComponent(content)}&template=compact`;
 }
 
 /**
  * Verify webhook payload (giả lập trong dev).
- * Trong prod cần verify signature bằng SEPAY_API_KEY.
+ * Trong prod cần verify signature bằng SEPAY_WEBHOOK_SECRET.
  */
 export function verifySepayWebhook(
   payload: SepayWebhookPayload,
@@ -89,33 +90,53 @@ export function parseSepayReference(content: string): string | null {
 
 /**
  * Verify SePay webhook signature using HMAC-SHA256.
- * 
- * SePay sends signature in header `x-sepay-signature` as HMAC-SHA256 of the raw body
- * using the API key as the secret.
+ *
+ * Theo docs SePay:
+ * - Signature = sha256=HMAC_SHA256(secret, "{timestamp}.{rawBody}")
+ * - Header: X-SePay-Signature: sha256=<hex>
+ * - Header: X-SePay-Timestamp: <unix_seconds>
+ * - Anti-replay: reject nếu |now - timestamp| > 5 phút
  */
 export function verifySepaySignature(
   rawBody: string,
   signature: string,
-  apiKey: string
-): boolean {
+  apiKey: string,
+  timestamp?: string | null
+): { valid: boolean; reason?: string } {
   try {
-    // Strip "sha256=" prefix if present
-    const cleanSig = signature.startsWith('sha256=') ? signature.slice(7) : signature;
-
-    const expectedSignature = crypto
-      .createHmac('sha256', apiKey)
-      .update(rawBody)
-      .digest('hex');
-
-    const signatureBuffer = Buffer.from(cleanSig, 'hex');
-    const expectedBuffer = Buffer.from(expectedSignature, 'hex');
-
-    if (signatureBuffer.length !== expectedBuffer.length) {
-      return false;
+    if (!signature || !apiKey) {
+      return { valid: false, reason: 'Missing signature or API key' };
     }
 
-    return crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
+    // Anti-replay: check timestamp nếu có
+    if (timestamp) {
+      const ts = parseInt(timestamp, 10);
+      if (Number.isFinite(ts)) {
+        const nowSec = Math.floor(Date.now() / 1000);
+        if (Math.abs(nowSec - ts) > 300) {
+          return { valid: false, reason: 'Timestamp expired (replay protection)' };
+        }
+      }
+    }
+
+    // SePay signs: "{timestamp}.{rawBody}" - không phải chỉ rawBody
+    const message = timestamp ? `${timestamp}.${rawBody}` : rawBody;
+    const expectedSignature =
+      'sha256=' +
+      crypto.createHmac('sha256', apiKey).update(message).digest('hex');
+
+    // timing-safe compare
+    const sigBuffer = Buffer.from(signature);
+    const expBuffer = Buffer.from(expectedSignature);
+    if (sigBuffer.length !== expBuffer.length) {
+      return { valid: false, reason: 'Signature length mismatch' };
+    }
+    if (!crypto.timingSafeEqual(sigBuffer, expBuffer)) {
+      return { valid: false, reason: 'Signature mismatch' };
+    }
+
+    return { valid: true };
   } catch {
-    return false;
+    return { valid: false, reason: 'Verification error' };
   }
 }
