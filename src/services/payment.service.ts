@@ -155,9 +155,9 @@ export async function handleWebhookService(
   payload: SepayWebhookPayload
 ): Promise<HandleWebhookResult> {
   const refCode = parseSepayReference(payload.content ?? '');
-  console.log('[webhook] received:', { content: payload.content, refCode, amount: payload.transferAmount, paymentId: payload.id });
+  console.log('[webhook] step1 refCode:', { content: payload.content, refCode });
   if (!refCode) {
-    console.log('[webhook] FAIL: cannot parse refCode from content:', payload.content);
+    console.log('[webhook] step1 FAIL: cannot parse refCode');
     return { success: false, message: 'Cannot parse reference from content' };
   }
 
@@ -166,12 +166,10 @@ export async function handleWebhookService(
     include: { room: true },
   });
 
+  console.log('[webhook] step2 lookup:', { refCode, found: !!payment, paymentId: payment?.id, status: payment?.status, dbSepayRef: payment?.sepayRef });
   if (!payment) {
-    console.log('[webhook] FAIL: payment not found for refCode:', refCode);
     return { success: false, message: 'Payment not found' };
   }
-
-  console.log('[webhook] found payment:', { id: payment.id, status: payment.status, amount: payment.amount, sepayRef: payment.sepayRef });
 
   if (payment.status === 'SUCCESS') {
     return {

@@ -13,16 +13,21 @@ export async function POST(request: NextRequest) {
     if (apiKey && apiKey !== 'dev_sandbox_key') {
       const signature = request.headers.get('x-sepay-signature');
       if (!signature) {
+        console.log('[webhook] FAIL: missing signature header');
         return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
       }
 
       const rawBody = JSON.stringify(payload);
       if (!verifySepaySignature(rawBody, signature, apiKey)) {
+        console.log('[webhook] FAIL: invalid signature');
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
       }
+    } else {
+      console.log('[webhook] no API key, skipping signature check');
     }
 
     const result = await handleWebhookService(payload);
+    console.log('[webhook] result:', result);
 
     if (!result.success) {
       return NextResponse.json({ error: result.message }, { status: 400 });
@@ -34,7 +39,7 @@ export async function POST(request: NextRequest) {
       roomId: result.roomId,
     });
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error('[webhook] CRASH:', error);
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }
