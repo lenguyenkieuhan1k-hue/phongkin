@@ -1,18 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { usePresenceStore } from '@/hooks/useStore';
 import MessageContent from './MessageContent';
 
 interface Message {
   id: string;
   roomId: string;
-  senderId: string;
-  sender?: {
-    id: string;
-    darkId: string;
-    handle: string;
-  };
+  senderGuestId: string;
+  senderHandle: string;
   type: string;
   body?: string;
   attachments?: any[];
@@ -28,17 +23,11 @@ interface MessageBubbleProps {
 
 export default function MessageBubble({ message, isOwn, formatTime }: MessageBubbleProps) {
   const [showActions, setShowActions] = useState(false);
-  const [isRead, setIsRead] = useState(false);
-  const onlineUsers = usePresenceStore((state) => state.onlineUsers);
-
   const isRecalled = !!message.recalledAt;
-  const senderStatus = message.sender?.darkId && onlineUsers.has(message.sender.darkId) ? 'online' : 'offline';
 
   const handleRecall = () => {
-    // Emit recall event
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('recall-message', { detail: { messageId: message.id } }));
-    }
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('phongkin-recall', { detail: { messageId: message.id } }));
   };
 
   return (
@@ -50,14 +39,9 @@ export default function MessageBubble({ message, isOwn, formatTime }: MessageBub
       <div className={`max-w-[75%] ${isOwn ? 'order-2' : 'order-1'}`}>
         {!isOwn && (
           <div className="flex items-center gap-2 mb-1 px-1">
-            <span className="text-xs font-mono text-gray-500">
-              {message.sender?.darkId || 'Unknown'}
+            <span className="text-xs text-gray-500">
+              {message.senderHandle || 'Ẩn danh'}
             </span>
-            <span
-              className={`w-2 h-2 rounded-full ${
-                senderStatus === 'online' ? 'bg-green-500' : 'bg-gray-600'
-              }`}
-            />
           </div>
         )}
 
@@ -69,27 +53,17 @@ export default function MessageBubble({ message, isOwn, formatTime }: MessageBub
           } ${isRecalled ? 'opacity-50 italic' : ''}`}
         >
           {isRecalled ? (
-            <p className="text-sm text-gray-400 italic">
-              This message was recalled
-            </p>
+            <p className="text-sm text-gray-400 italic">Tin nhắn đã được thu hồi</p>
           ) : (
             <MessageContent message={message} isOwn={isOwn} />
           )}
         </div>
 
         <div className={`flex items-center gap-2 mt-1 ${isOwn ? 'justify-end' : 'justify-start'} px-1`}>
-          <span className="text-[10px] text-gray-600">
-            {formatTime(message.createdAt)}
-          </span>
-          {isOwn && (
-            <span className="text-[10px] text-gray-600">
-              {isRead ? 'Read' : 'Sent'}
-            </span>
-          )}
+          <span className="text-[10px] text-gray-600">{formatTime(message.createdAt)}</span>
         </div>
       </div>
 
-      {/* Actions */}
       {isOwn && !isRecalled && (
         <div
           className={`order-1 flex items-center self-center mr-2 transition-opacity ${
@@ -99,7 +73,7 @@ export default function MessageBubble({ message, isOwn, formatTime }: MessageBub
           <button
             onClick={handleRecall}
             className="p-1.5 rounded-lg hover:bg-dark-800 text-gray-500 hover:text-gray-300 transition-colors"
-            title="Recall message"
+            title="Thu hồi"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />

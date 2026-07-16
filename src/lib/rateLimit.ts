@@ -22,6 +22,8 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
   invite: { limit: 10, windowSeconds: 3600 },
   upload: { limit: 5, windowSeconds: 3600 },
   presign: { limit: 20, windowSeconds: 60 },
+  payment_create: { limit: 5, windowSeconds: 3600 },
+  room_access: { limit: 30, windowSeconds: 60 },
 };
 
 interface RateLimitResult {

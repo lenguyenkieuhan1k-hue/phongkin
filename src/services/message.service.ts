@@ -9,12 +9,10 @@ import {
 
 export interface SendMessageParams {
   roomId: string;
-  senderId: string;
-  senderDarkId: string;
+  senderGuestId: string;
   senderHandle: string;
   type: 'TEXT' | 'IMAGE' | 'VIDEO' | 'FILE' | 'VOICE' | 'SYSTEM';
   body?: string;
-  attachmentId?: string;
   attachments?: Array<{
     id: string;
     storageKey: string;
@@ -38,7 +36,14 @@ export async function sendMessageService(
   params: SendMessageParams
 ): Promise<SendMessageResult | SendMessageError> {
   try {
-    const message = createMessage(params);
+    const message = await createMessage({
+      roomId: params.roomId,
+      senderGuestId: params.senderGuestId,
+      senderHandle: params.senderHandle,
+      type: params.type,
+      body: params.body,
+      attachments: params.attachments,
+    });
     return { success: true, message };
   } catch (error) {
     console.error('Failed to send message:', error);
@@ -47,14 +52,6 @@ export async function sendMessageService(
       error: 'Failed to send message. Please try again.',
     };
   }
-}
-
-export async function getMessagesService(
-  roomId: string,
-  cursor?: string,
-  limit: number = 50
-): Promise<Message[]> {
-  return getMessages(roomId, limit);
 }
 
 export async function getRecentMessagesService(
@@ -66,7 +63,7 @@ export async function getRecentMessagesService(
 
 export async function recallMessageService(
   messageId: string,
-  senderId: string
+  senderGuestId: string
 ): Promise<{ success: boolean; error?: string }> {
   const message = getMessage(messageId);
 
@@ -74,21 +71,21 @@ export async function recallMessageService(
     return { success: false, error: 'Message not found.' };
   }
 
-  if (message.senderId !== senderId) {
-    return { success: false, error: 'You can only recall your own messages.' };
+  if (message.senderGuestId !== senderGuestId) {
+    return { success: false, error: 'Bạn chỉ có thể thu hồi tin nhắn của mình.' };
   }
 
   if (message.recalledAt) {
-    return { success: false, error: 'Message already recalled.' };
+    return { success: false, error: 'Tin nhắn đã được thu hồi.' };
   }
 
-  const success = recallMessage_(messageId);
+  const success = await recallMessage_(messageId);
   return success ? { success: true } : { success: false, error: 'Failed to recall message.' };
 }
 
 export async function deleteMessageService(
   messageId: string,
-  senderId: string
+  senderGuestId: string
 ): Promise<{ success: boolean; error?: string }> {
   const message = getMessage(messageId);
 
@@ -96,10 +93,10 @@ export async function deleteMessageService(
     return { success: false, error: 'Message not found.' };
   }
 
-  if (message.senderId !== senderId) {
-    return { success: false, error: 'You can only delete your own messages.' };
+  if (message.senderGuestId !== senderGuestId) {
+    return { success: false, error: 'Bạn chỉ có thể xóa tin nhắn của mình.' };
   }
 
-  const success = deleteMessage_(messageId);
+  const success = await deleteMessage_(messageId);
   return success ? { success: true } : { success: false, error: 'Failed to delete message.' };
 }

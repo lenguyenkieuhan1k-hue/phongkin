@@ -1,155 +1,93 @@
 'use client';
 
 import { create } from 'zustand';
-import { Session } from '@prisma/client';
-
-interface SessionState {
-  session: Session | null;
-  isLoading: boolean;
-  error: string | null;
-  setSession: (session: Session | null) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-}
-
-export const useSessionStore = create<SessionState>((set) => ({
-  session: null,
-  isLoading: false,
-  error: null,
-  setSession: (session) => set({ session, isLoading: false, error: null }),
-  setLoading: (isLoading) => set({ isLoading }),
-  setError: (error) => set({ error, isLoading: false }),
-}));
 
 interface RoomState {
   currentRoomId: string | null;
-  rooms: Map<string, RoomInfo>;
-  setCurrentRoom: (roomId: string | null) => void;
-  addRoom: (roomId: string, info: RoomInfo) => void;
-  removeRoom: (roomId: string) => void;
-}
-
-interface RoomInfo {
-  id: string;
-  status: string;
-  otherUserDarkId: string;
+  inviteToken: string | null;
+  guestId: string | null;
+  memberCount: number;
+  expiresAt: string | null;
+  roomStatus: 'ACTIVE' | 'FULL' | 'EXPIRED' | null;
+  setRoom: (info: {
+    roomId: string;
+    inviteToken: string;
+    guestId: string;
+    expiresAt: string;
+    status: 'ACTIVE' | 'FULL' | 'EXPIRED';
+  }) => void;
+  setMemberCount: (n: number) => void;
+  setRoomStatus: (s: 'ACTIVE' | 'FULL' | 'EXPIRED') => void;
+  clearRoom: () => void;
 }
 
 export const useRoomStore = create<RoomState>((set) => ({
   currentRoomId: null,
-  rooms: new Map(),
-  setCurrentRoom: (roomId) => set({ currentRoomId: roomId }),
-  addRoom: (roomId, info) =>
-    set((state) => {
-      const newRooms = new Map(state.rooms);
-      newRooms.set(roomId, info);
-      return { rooms: newRooms };
+  inviteToken: null,
+  guestId: null,
+  memberCount: 1,
+  expiresAt: null,
+  roomStatus: null,
+  setRoom: (info) =>
+    set({
+      currentRoomId: info.roomId,
+      inviteToken: info.inviteToken,
+      guestId: info.guestId,
+      expiresAt: info.expiresAt,
+      roomStatus: info.status,
+      memberCount: 1,
     }),
-  removeRoom: (roomId) =>
-    set((state) => {
-      const newRooms = new Map(state.rooms);
-      newRooms.delete(roomId);
-      return { rooms: newRooms };
+  setMemberCount: (n) => set({ memberCount: n }),
+  setRoomStatus: (s) => set({ roomStatus: s }),
+  clearRoom: () =>
+    set({
+      currentRoomId: null,
+      inviteToken: null,
+      guestId: null,
+      memberCount: 0,
+      expiresAt: null,
+      roomStatus: null,
     }),
 }));
 
 interface Message {
   id: string;
   roomId: string;
-  senderId: string;
-  sender?: {
-    id: string;
-    darkId: string;
-    handle: string;
-  };
+  senderGuestId: string;
+  senderHandle: string;
   type: string;
   body?: string;
-  attachments?: Attachment[];
+  attachments?: Array<{
+    id: string;
+    storageKey: string;
+    mimeType: string;
+    byteSize: number;
+  }>;
   createdAt: string;
   recalledAt?: string | null;
 }
 
-interface Attachment {
-  id: string;
-  storageKey: string;
-  mimeType: string;
-  byteSize: number;
-}
-
 interface MessageState {
-  messages: Map<string, Message[]>;
-  typingUsers: Map<string, string[]>;
-  addMessage: (roomId: string, message: Message) => void;
-  updateMessage: (roomId: string, messageId: string, updates: Partial<Message>) => void;
-  removeMessage: (roomId: string, messageId: string) => void;
-  setMessages: (roomId: string, messages: Message[]) => void;
-  setTypingUsers: (roomId: string, users: string[]) => void;
+  messages: Message[];
+  typingUsers: string[];
+  addMessage: (m: Message) => void;
+  setMessages: (msgs: Message[]) => void;
+  updateMessage: (id: string, patch: Partial<Message>) => void;
+  removeMessage: (id: string) => void;
+  setTyping: (guestIds: string[]) => void;
+  clear: () => void;
 }
 
 export const useMessageStore = create<MessageState>((set) => ({
-  messages: new Map(),
-  typingUsers: new Map(),
-  addMessage: (roomId, message) =>
-    set((state) => {
-      const newMessages = new Map(state.messages);
-      const roomMessages = newMessages.get(roomId) || [];
-      roomMessages.push(message);
-      newMessages.set(roomId, roomMessages);
-      return { messages: newMessages };
-    }),
-  updateMessage: (roomId, messageId, updates) =>
-    set((state) => {
-      const newMessages = new Map(state.messages);
-      const roomMessages = newMessages.get(roomId) || [];
-      const index = roomMessages.findIndex((m) => m.id === messageId);
-      if (index !== -1) {
-        roomMessages[index] = { ...roomMessages[index], ...updates };
-        newMessages.set(roomId, roomMessages);
-      }
-      return { messages: newMessages };
-    }),
-  removeMessage: (roomId, messageId) =>
-    set((state) => {
-      const newMessages = new Map(state.messages);
-      const roomMessages = newMessages.get(roomId) || [];
-      newMessages.set(
-        roomId,
-        roomMessages.filter((m) => m.id !== messageId)
-      );
-      return { messages: newMessages };
-    }),
-  setMessages: (roomId, messages) =>
-    set((state) => {
-      const newMessages = new Map(state.messages);
-      newMessages.set(roomId, messages);
-      return { messages: newMessages };
-    }),
-  setTypingUsers: (roomId, users) =>
-    set((state) => {
-      const newTyping = new Map(state.typingUsers);
-      newTyping.set(roomId, users);
-      return { typingUsers: newTyping };
-    }),
-}));
-
-interface PresenceState {
-  onlineUsers: Set<string>;
-  setOnline: (darkId: string) => void;
-  setOffline: (darkId: string) => void;
-}
-
-export const usePresenceStore = create<PresenceState>((set) => ({
-  onlineUsers: new Set(),
-  setOnline: (darkId) =>
-    set((state) => {
-      const newSet = new Set(state.onlineUsers);
-      newSet.add(darkId);
-      return { onlineUsers: newSet };
-    }),
-  setOffline: (darkId) =>
-    set((state) => {
-      const newSet = new Set(state.onlineUsers);
-      newSet.delete(darkId);
-      return { onlineUsers: newSet };
-    }),
+  messages: [],
+  typingUsers: [],
+  addMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
+  setMessages: (msgs) => set({ messages: msgs }),
+  updateMessage: (id, patch) =>
+    set((s) => ({
+      messages: s.messages.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    })),
+  removeMessage: (id) => set((s) => ({ messages: s.messages.filter((m) => m.id !== id) })),
+  setTyping: (guestIds) => set({ typingUsers: guestIds }),
+  clear: () => set({ messages: [], typingUsers: [] }),
 }));

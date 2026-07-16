@@ -1,32 +1,53 @@
 import { Socket } from 'socket.io';
-import { getSessionByToken } from '@/lib/auth';
 import { AuthenticatedSocket } from './index';
+import { bindOwnerIfPendingService, getRoomByInviteTokenService } from '@/services/room.service';
 
+interface AuthPayload {
+  roomToken: string;
+  guestId: string;
+}
+
+/**
+ * Phòng Kín auth:
+ * - Client gửi { roomToken, guestId } qua handshake.auth
+ * - Server verify phòng còn active + guestId hợp lệ
+ * - Không cần session token
+ *
+ * Đồng thời bind ownerGuestId nếu phòng còn `pending_<paymentId>` — đảm bảo
+ * người đầu tiên reconnect/mở link trở thành owner thật.
+ */
 export async function authMiddleware(
   socket: Socket,
   next: (err?: Error) => void
 ): Promise<void> {
-  const token = socket.handshake.auth.token as string ||
-    socket.handshake.headers.authorization?.replace('Bearer ', '');
+  const payload = socket.handshake.auth as Partial<AuthPayload>;
 
-  if (!token) {
-    return next(new Error('Authentication required'));
+  const roomToken = payload.roomToken;
+  const guestId = payload.guestId;
+
+  if (!roomToken || !guestId) {
+    return next(new Error('Missing roomToken or guestId'));
   }
 
   try {
-    const session = await getSessionByToken(token);
-
-    if (!session) {
-      return next(new Error('Session expired or invalid'));
+    const room = await getRoomByInviteTokenService(roomToken);
+    if (!room) {
+      return next(new Error('Room not found'));
     }
 
-    if (new Date(session.expiresAt) < new Date()) {
-      return next(new Error('Session expired'));
+    if (room.status === 'EXPIRED' || room.expiresAt.getTime() <= Date.now()) {
+      return next(new Error('Room expired'));
     }
 
-    (socket as AuthenticatedSocket).sessionToken = token;
-    (socket as AuthenticatedSocket).darkId = session.darkId;
-    (socket as AuthenticatedSocket).sessionId = session.id;
+    // Claim owner nếu còn pending. Hàm này idempotent — chỉ owner đầu tiên win.
+    const bound = await bindOwnerIfPendingService(room.id, guestId);
+    const finalRoom = bound?.room ?? room;
+    const isOwner = bound?.isOwner ?? finalRoom.ownerGuestId === guestId;
+
+    (socket as AuthenticatedSocket).roomId = finalRoom.id;
+    (socket as AuthenticatedSocket).inviteToken = roomToken;
+    (socket as AuthenticatedSocket).guestId = guestId;
+    (socket as AuthenticatedSocket).isOwner = isOwner;
 
     next();
   } catch (error) {

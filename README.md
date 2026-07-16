@@ -1,149 +1,167 @@
-# DarkTalk
+# Phòng Kín
 
-Anonymous peer-to-peer chat application. No accounts. No tracking. 2-hour ephemeral sessions.
+> **Họp ở đây, dừng ở đây.**
 
-## Features
+Nền tảng tạo phòng chat riêng tư theo thời gian. Không tài khoản. Không cài đặt. Không lưu lại.
 
-- Anonymous chat with auto-generated Dark IDs
-- Real-time messaging via WebSocket
-- Text, emoji, images, files, and voice messages
-- Read receipts and typing indicators
-- Message recall and delete
-- 2-hour auto-expiring sessions
-- No data retention after session ends
+## Tính năng
 
-## Tech Stack
+- 🔒 **Riêng tư tuyệt đối** — Không cần đăng ký, không cần email
+- ⚡ **Mở là vào** — Chia sẻ link, không cần nhập mã
+- ⏱️ **Tự hết hạn** — Phòng đóng sau khi hết giờ, dữ liệu bị xóa
+- 👥 **Lên đến 20 người** — Phòng 1-1 hoặc nhóm
+- 💬 **Chat đầy đủ** — Text, emoji, ảnh, video, voice, file
+- 💳 **Thanh toán QR** — Tích hợp SePay/VietQR
 
-- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
-- **Backend**: Node.js, Socket.IO 4
-- **Database**: PostgreSQL + Prisma ORM
+## Tech stack
+
+- **Framework**: Next.js 14 (App Router) + React 18
+- **Realtime**: Socket.IO 4 (custom Node server, `tsx`)
+- **Database**: SQLite + Prisma 5
 - **Cache**: Redis 7
 - **Storage**: MinIO (S3-compatible)
-- **Container**: Docker Compose
+- **Payment**: SePay webhook
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 20+
-- Docker and Docker Compose
-- npm or pnpm
-
-### Setup
-
-1. Clone the repository
-2. Copy environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-
-3. Start all services:
-   ```bash
-   docker-compose up -d
-   ```
-
-4. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-5. Generate Prisma client:
-   ```bash
-   npm run db:generate
-   ```
-
-6. Push schema to database:
-   ```bash
-   npm run db:push
-   ```
-
-7. Start development server:
-   ```bash
-   npm run dev
-   ```
-
-8. Open [http://localhost:3000](http://localhost:3000)
-
-## Development
-
-### Scripts
+## Cài đặt
 
 ```bash
-npm run dev        # Start development server
-npm run build      # Build for production
-npm run start      # Start production server
-npm run lint       # Run ESLint
-npm run db:generate # Generate Prisma client
-npm run db:push    # Push schema to database
-npm run db:migrate # Run migrations
-npm run db:studio # Open Prisma Studio
-npm run db:seed   # Seed database with test data
+# 1. Cài dependencies
+npm install
+
+# 2. Tạo .env (copy từ .env.example)
+cp .env.example .env
+
+# 3. Khởi tạo database
+npx prisma db push
+
+# 4. Chạy dev
+npm run dev
 ```
 
-### Project Structure
+Server sẽ chạy ở `http://localhost:3000`.
+
+### Yêu cầu môi trường
+
+| Service | Port | Mục đích |
+|---|---|---|
+| Node 18+ | 3000 | Web app |
+| Redis | 6379 | Socket.IO scaling (optional trong dev) |
+| MinIO | 9000 | File storage |
+
+**Dev không cần Redis** — Socket.IO sẽ tự chạy ở chế độ single-node.
+
+## Cấu trúc dự án
 
 ```
 src/
-├── app/              # Next.js App Router
-│   ├── api/          # REST API routes
-│   ├── layout.tsx    # Root layout
-│   └── page.tsx      # Home page
-├── components/       # React components
-│   ├── Chat/         # Chat UI components
-│   └── Invite/       # Invitation components
-├── hooks/            # Custom React hooks
-├── lib/              # Utilities and clients
-│   ├── prisma.ts     # Prisma client
-│   ├── redis.ts      # Redis client
-│   ├── storage.ts    # MinIO client
-│   └── validators/   # Input validation
-├── services/         # Business logic
-│   ├── session.service.ts
-│   ├── room.service.ts
-│   ├── message.service.ts
-│   └── invite.service.ts
-├── socket/           # Socket.IO handlers
-│   ├── handlers/     # Event handlers
+├── app/
+│   ├── page.tsx                      # LandingPage
+│   ├── create/page.tsx               # Chọn plan
+│   ├── payment/[id]/page.tsx         # QR + polling
+│   ├── payment/[id]/success/page.tsx # Share link
+│   ├── r/[token]/page.tsx            # Redirect → chat
+│   ├── chat/[token]/page.tsx         # Phòng chat
+│   └── api/
+│       ├── payment/{create,webhook,[id]/status}/route.ts
+│       ├── rooms/[token]/route.ts
+│       ├── media/upload/route.ts
+│       ├── upload/{presign,complete}/route.ts
+│       └── health/route.ts
+├── components/
+│   ├── Landing/                      # Hero + pricing + FAQ
+│   └── Chat/                         # ChatInterface, Message*, RoomHeader
+├── hooks/                            # useSocket, useRoomTimer, useStore
+├── lib/
+│   ├── pricing.ts                    # Bảng giá + helpers
+│   ├── sepay.ts                      # SePay wrapper
+│   ├── rooms.ts                      # In-memory cache
+│   ├── messages.ts                   # In-memory chat
+│   ├── storage.ts                    # MinIO
+│   ├── storage-local.ts              # Filesystem fallback
+│   ├── rateLimit.ts
+│   ├── guest.ts                      # Cookie-based guestId
+│   ├── invite-token.ts               # nanoid(18)
+│   └── prisma.ts
+├── services/
+│   ├── room.service.ts               # Prisma Room layer
+│   ├── message.service.ts            # Send/recall/delete
+│   ├── payment.service.ts            # Invoice + webhook
+│   ├── room-lifecycle.service.ts     # Cron cleanup
+│   └── upload.service.ts
+├── socket/                           # Socket.IO
+│   ├── index.ts
+│   ├── events.ts
 │   ├── auth.middleware.ts
-│   └── events.ts     # Event definitions
-└── types/            # TypeScript types
+│   └── handlers/{chat,message,presence}.ts
+└── server.ts                         # HTTP + Next + Socket.IO bootstrap
+
+prisma/schema.prisma                  # Payment, Room, RoomMember, Message, Attachment
 ```
 
-## Architecture
+## Flow
 
-### Session Flow
+```
+1. Visitor → /
+2. → /create → chọn duration + members
+3. POST /api/payment/create → trả { paymentId, qrContent }
+4. → /payment/[id] (polling mỗi 3s)
+5. User quét QR, chuyển khoản qua app ngân hàng
+6. SePay POST /api/payment/webhook → tạo Room
+7. → /payment/[id]/success → hiển thị link
+8. Chia sẻ link cho người khác → /r/{token} → /chat/{token}
+9. Cron mỗi 60s check rooms hết hạn → set EXPIRED + emit room:closed
+10. Sau 7 ngày EXPIRED → xóa hoàn toàn khỏi DB
+```
 
-1. User visits site → Server creates session
-2. Session includes random token + Dark ID
-3. Stored in Redis (hot) + PostgreSQL (cold)
-4. 2-hour TTL, auto-extends on activity
-5. On expiry → all data deleted
+## Bảng giá
 
-### Connection Flow
+| Thời gian | 2 người | 5 người | 10 người | 20 người |
+|---|---|---|---|---|
+| **30 phút** | 49.000đ | 79.000đ | 129.000đ | 199.000đ |
+| **1 giờ** | 79.000đ | 129.000đ | 199.000đ | 299.000đ |
+| **2 giờ** | 129.000đ | 199.000đ | 299.000đ | 499.000đ |
 
-1. User A enters User B's Dark ID
-2. Server creates PENDING room
-3. User B receives invitation popup
-4. User B accepts → room becomes ACTIVE
-5. Both users join room, can chat
+## Test webhook (dev)
 
-### Message Flow
+```bash
+# Tạo invoice trước bằng cách vào UI
+# Sau đó giả lập SePay callback:
+npx tsx scripts/test-webhook.ts <paymentId>
+```
 
-1. Client sends via Socket.IO
-2. Server validates + persists to PostgreSQL
-3. Server caches in Redis for fast retrieval
-4. Broadcasts to room via Socket.IO
-5. Recipient receives in real-time
+## Cấu hình SePay production
 
-## Security
+1. Đăng ký tài khoản SePay Business tại https://my.sepay.vn
+2. Lấy thông tin: số tài khoản, mã ngân hàng, API key
+3. Cập nhật `.env`:
+   ```
+   SEPAY_ACCOUNT_NUMBER="0123456789"
+   SEPAY_BANK="MBBank"
+   SEPAY_ACCOUNT_NAME="TEN CUA BAN"
+   SEPAY_API_KEY="your_real_api_key"
+   ```
+4. Trong dashboard SePay, set webhook URL = `https://yourdomain.com/api/payment/webhook`
+5. **TODO**: Implement signature verification trong `src/app/api/payment/webhook/route.ts`
 
-- HttpOnly, Secure, SameSite cookies
-- SHA-256 hashed IPs
-- High-entropy Dark IDs (1 trillion combinations)
-- Rate limiting on all endpoints
-- File type/size validation
-- Input sanitization
+## Scripts
+
+```bash
+npm run dev          # Chạy dev (tsx watch)
+npm run build        # Build Next.js
+npm start            # Production server
+npm run db:push      # Apply schema lên SQLite
+npm run db:studio    # Mở Prisma Studio
+```
+
+## Anti-forensic
+
+- ✅ Mọi tin nhắn, file, member join/leave đều có TTL
+- ✅ Cron cleanup tự động
+- ✅ Không log IP (trừ counter chống spam)
+- ✅ Không cần email/SĐT
+- ✅ Guest ID chỉ tồn tại trong cookie, không liên kết với identity
+- ✅ Room bị xóa hoàn toàn sau 7 ngày EXPIRED
 
 ## License
 
-MIT
+Private.

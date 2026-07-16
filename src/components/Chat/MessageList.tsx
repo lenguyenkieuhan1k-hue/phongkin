@@ -1,85 +1,72 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
-import { usePresenceStore } from '@/hooks/useStore';
+import { useEffect, useRef, useCallback } from 'react';
+import { useMessageStore } from '@/hooks/useStore';
 import MessageBubble from './MessageBubble';
 
-interface Message {
-  id: string;
-  roomId: string;
-  senderId: string;
-  sender?: {
-    id: string;
-    darkId: string;
-    handle: string;
-  };
-  type: string;
-  body?: string;
-  attachments?: any[];
-  createdAt: string;
-  recalledAt?: string | null;
-}
-
 interface MessageListProps {
-  messages: Message[];
-  currentUserId: string;
-  typingUsers: string[];
+  guestId: string;
 }
 
-export default function MessageList({
-  messages,
-  currentUserId,
-  typingUsers,
-}: MessageListProps) {
+export default function MessageList({ guestId }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const onlineUsers = usePresenceStore((state) => state.onlineUsers);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  }, [messages]);
+  const messages = useMessageStore((s) => s.messages);
+  const isAtBottomRef = useRef(true);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   };
 
-  const otherTypingUsers = typingUsers.filter((u) => u !== 'current-user');
+  // Smart auto-scroll: chỉ scroll xuống nếu user đang ở cuối
+  const scrollToBottom = useCallback((force = false) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    if (force || isAtBottomRef.current) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, []);
+
+  // Auto-scroll khi có tin nhắn mới
+  useEffect(() => {
+    // Debounce scroll - tránh scroll quá nhiều lần
+    const timeoutId = setTimeout(() => {
+      scrollToBottom();
+    }, 50);
+    return () => clearTimeout(timeoutId);
+  }, [messages.length, scrollToBottom]);
+
+  // Track scroll position để biết user đang ở đâu
+  const handleScroll = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    // User ở cuối nếu scrollTop + clientHeight >= scrollHeight - 100px
+    isAtBottomRef.current = scrollHeight - scrollTop - clientHeight < 100;
+  }, []);
 
   return (
     <div
       ref={containerRef}
       className="flex-1 overflow-y-auto p-4 space-y-4"
+      onScroll={handleScroll}
     >
       {messages.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No messages yet. Say hello!</p>
+          <p className="text-gray-500">Chưa có tin nhắn nào. Hãy gửi lời chào!</p>
         </div>
       )}
 
-      {messages.map((message) => (
+      {messages.map((m) => (
         <MessageBubble
-          key={message.id}
-          message={message}
-          isOwn={message.senderId === currentUserId}
+          key={m.id}
+          message={m}
+          isOwn={m.senderGuestId === guestId}
           formatTime={formatTime}
         />
       ))}
-
-      {otherTypingUsers.length > 0 && (
-        <div className="flex items-center gap-2 text-gray-500 text-sm">
-          <div className="flex gap-1">
-            <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-            <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-            <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-          </div>
-          <span>{otherTypingUsers[0]} is typing...</span>
-        </div>
-      )}
     </div>
   );
 }

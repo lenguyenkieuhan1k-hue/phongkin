@@ -1,56 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { getSessionService } from '@/services/session.service';
-import { presignUploadService } from '@/services/upload.service';
+import { getOrCreateGuestId } from '@/lib/guest';
+import { checkRateLimit } from '@/lib/rateLimit';
 import { presignSchema } from '@/lib/validators';
+import { generateStorageKey, getPresignedUploadUrl } from '@/lib/storage';
+import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get('sessionToken')?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const session = await getSessionService(token);
-
-    if (!session) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    const guestId = getOrCreateGuestId();
+    const { allowed } = await checkRateLimit(guestId, 'presign');
+    if (!allowed) {
+      return NextResponse.json({ error: 'Quá nhiều yêu cầu upload' }, { status: 429 });
     }
 
     const body = await request.json();
     const validation = presignSchema.safeParse(body);
-
     if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.errors },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
-    const result = await presignUploadService(
-      session.id,
-      validation.data.filename,
-      validation.data.contentType,
-      validation.data.byteSize
-    );
-
-    if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
-    }
+    const key = generateStorageKey('file', guestId, validation.data.filename);
+    const uploadUrl = await getPresignedUploadUrl(key, 15 * 60);
+    const uploadId = crypto.randomUUID();
 
     return NextResponse.json({
-      uploadId: result.uploadId,
-      key: result.key,
-      uploadUrl: result.uploadUrl,
-      expiresAt: result.expiresAt,
+      uploadId,
+      key,
+      uploadUrl,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
     });
   } catch (error) {
     console.error('Presign error:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate upload URL' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 500 });
   }
 }

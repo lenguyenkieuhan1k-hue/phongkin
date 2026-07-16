@@ -1,109 +1,181 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useRoomStore, useMessageStore } from '@/hooks/useStore';
-import { useSocket } from '@/hooks/useSocket';
-import InviteModal from '@/components/Invite/InviteModal';
-import { IncomingInviteProvider } from '@/components/Invite/IncomingInviteModal';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import RoomHeader from './RoomHeader';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import UserHeader from './UserHeader';
+import LoadingScreen from './LoadingScreen';
+import { useSocket } from '@/hooks/useSocket';
 
 interface ChatScreenProps {
-  session: any;
-  onLogout: () => void;
+  inviteToken: string;
 }
 
-const EMPTY_ARRAY: never[] = [];
-
-export default function ChatScreen({ session, onLogout }: ChatScreenProps) {
-  return (
-    <IncomingInviteProvider sessionToken={session.token}>
-      <ChatScreenInner session={session} onLogout={onLogout} />
-    </IncomingInviteProvider>
-  );
+interface RoomInfo {
+  id: string;
+  inviteToken: string;
+  duration: number;
+  maxMembers: number;
+  status: 'ACTIVE' | 'FULL' | 'EXPIRED';
+  expiresAt: string;
+  isOwner: boolean;
 }
 
-function ChatScreenInner({ session, onLogout }: ChatScreenProps) {
-  const [showInviteModal, setShowInviteModal] = useState(false);
+interface Member {
+  handle: string;
+  isOwner: boolean;
+}
 
-  // Initialize socket connection
-  useSocket(session);
+interface JoinResponse {
+  room?: RoomInfo;
+  guestId?: string;
+  handle?: string;
+  memberCount?: number;
+  members?: Member[];
+  error?: string;
+  code?: 'NOT_FOUND' | 'EXPIRED' | 'FULL' | 'ALREADY_JOINED';
+}
 
-  const currentRoomId = useRoomStore((state) => state.currentRoomId);
-  const messagesMap = useMessageStore((state) => state.messages);
-  const typingMap = useMessageStore((state) => state.typingUsers);
+type Phase = 'HANDLE' | 'JOINING' | 'CHAT' | 'ERROR';
 
-  const messages = useMemo(() => {
-    const roomId = currentRoomId || '';
-    return messagesMap.get(roomId) || EMPTY_ARRAY;
-  }, [currentRoomId, messagesMap]);
+const HANDLE_KEY = (token: string) => `pk:handle:${token}`;
 
-  const typingUsers = useMemo(() => {
-    const roomId = currentRoomId || '';
-    return typingMap.get(roomId) || EMPTY_ARRAY;
-  }, [currentRoomId, typingMap]);
+export default function ChatScreen({ inviteToken }: ChatScreenProps) {
+  const router = useRouter();
+  const [phase, setPhase] = useState<Phase>('HANDLE');
+  const [handle, setHandle] = useState('');
+  const [handleError, setHandleError] = useState<string | null>(null);
+  const [globalError, setGlobalError] = useState<string | null>(null);
+  const [room, setRoom] = useState<RoomInfo | null>(null);
+  const [guestId, setGuestId] = useState<string | null>(null);
+
+  // Đọc handle đã lưu trong localStorage (nếu user F5 hoặc quay lại)
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem(HANDLE_KEY(inviteToken)) : null;
+    if (saved) setHandle(saved);
+  }, [inviteToken]);
+
+  const submitHandle = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const trimmed = handle.trim();
+    if (!trimmed) {
+      setHandleError('Vui lòng nhập biệt danh.');
+      return;
+    }
+    if (trimmed.length > 24) {
+      setHandleError('Biệt danh tối đa 24 ký tự.');
+      return;
+    }
+    setHandleError(null);
+    setPhase('JOINING');
+    try {
+      const r = await fetch(`/api/rooms/${inviteToken}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ handle: trimmed }),
+      });
+      const data = (await r.json()) as JoinResponse;
+      if (!r.ok || !data.room || !data.guestId) {
+        const msg =
+          data.code === 'FULL'
+            ? 'Phòng đã đủ số lượng thành viên.'
+            : data.code === 'EXPIRED'
+            ? 'Phòng đã hết hạn.'
+            : data.code === 'NOT_FOUND'
+            ? 'Phòng không tồn tại.'
+            : data.error || 'Không thể vào phòng.';
+        setGlobalError(msg);
+        setPhase('ERROR');
+        return;
+      }
+      localStorage.setItem(HANDLE_KEY(inviteToken), trimmed);
+      setRoom(data.room);
+      setGuestId(data.guestId);
+      setPhase('CHAT');
+    } catch {
+      setGlobalError('Lỗi mạng. Vui lòng thử lại.');
+      setPhase('ERROR');
+    }
+  };
+
+  // Khi có guestId → connect socket
+  useSocket(guestId && phase === 'CHAT' ? { roomToken: inviteToken, guestId } : null);
+
+  // Form nhập biệt danh
+  if (phase === 'HANDLE') {
+    return (
+      <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
+        <div className="card p-8 max-w-md w-full space-y-5">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Chào mừng vào phòng</h1>
+            <p className="text-gray-400 mt-1 text-sm">
+              Chọn một biệt danh để mọi người nhận ra bạn trong cuộc trò chuyện.
+            </p>
+          </div>
+          <form onSubmit={submitHandle} className="space-y-4">
+            <div>
+              <label htmlFor="handle" className="block text-sm font-medium text-gray-300 mb-2">
+                Biệt danh của bạn
+              </label>
+              <input
+                id="handle"
+                type="text"
+                value={handle}
+                onChange={(e) => setHandle(e.target.value)}
+                maxLength={24}
+                autoFocus
+                placeholder="VD: Mèo Mun, An, ..."
+                className="w-full px-4 py-3 rounded-xl bg-dark-800 border border-dark-700 text-white placeholder-gray-500 focus:outline-none focus:border-accent-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">Tối đa 24 ký tự.</p>
+            </div>
+            {handleError && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-lg px-3 py-2">
+                {handleError}
+              </div>
+            )}
+            <button type="submit" className="w-full btn btn-primary py-3 rounded-xl font-semibold">
+              Vào phòng
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'JOINING') return <LoadingScreen />;
+
+  if (phase === 'ERROR') {
+    return (
+      <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
+        <div className="card p-8 max-w-md w-full text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-red-500/20 flex items-center justify-center">
+            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold text-white">Không thể vào phòng</h1>
+          <p className="text-gray-400">{globalError}</p>
+          <button onClick={() => router.push('/')} className="btn btn-primary w-full">
+            Về trang chủ
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!room || !guestId) return <LoadingScreen />;
 
   return (
     <div className="min-h-screen flex flex-col bg-dark-950">
-      <UserHeader
-        darkId={session.darkId}
-        expiresAt={session.expiresAt}
-        onInviteClick={() => setShowInviteModal(true)}
-        onLogout={onLogout}
-      />
-
+      <RoomHeader inviteToken={inviteToken} />
       <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
-        {currentRoomId ? (
-          <>
-            <div className="flex-1 overflow-hidden">
-              <MessageList
-                messages={messages}
-                currentUserId={session.id}
-                typingUsers={typingUsers}
-              />
-            </div>
-            <MessageInput roomId={currentRoomId} />
-          </>
-        ) : (
-          <EmptyState onInviteClick={() => setShowInviteModal(true)} />
-        )}
+        <div className="flex-1 overflow-hidden">
+          <MessageList guestId={guestId} />
+        </div>
+        <MessageInput />
       </main>
-
-      {showInviteModal && (
-        <InviteModal
-          onClose={() => setShowInviteModal(false)}
-          inviterDarkId={session.darkId}
-          sessionToken={session.token}
-        />
-      )}
-    </div>
-  );
-}
-
-function EmptyState({ onInviteClick }: { onInviteClick: () => void }) {
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-dark-800 flex items-center justify-center mb-6">
-        <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-        </svg>
-      </div>
-      <h2 className="text-xl font-semibold text-gray-300 mb-2">
-        No active conversations
-      </h2>
-      <p className="text-gray-500 mb-8 max-w-sm">
-        Share your Dark ID with someone to start a conversation, or enter their Dark ID to connect.
-      </p>
-      <button
-        onClick={onInviteClick}
-        className="btn btn-primary"
-      >
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-        Start a conversation
-      </button>
     </div>
   );
 }

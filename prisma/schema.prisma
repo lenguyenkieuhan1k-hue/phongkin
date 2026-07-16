@@ -7,64 +7,96 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Session {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  darkId    String   @unique
-  handle    String   @default("Anon")
-  ipHash    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+// =============================================================
+// PAYMENT — giao dịch SePay / VietQR
+// =============================================================
+model Payment {
+  id           String   @id @default(uuid())
+  amount       Int
+  duration     Int
+  maxMembers   Int
+  status       String   @default("PENDING")
+  sepayRef     String   @unique
+  qrContent    String
+  // Terms agreement
+  agreedToTerms Boolean  @default(false)
+  agreedAt      DateTime?
+  termsVersion  String?
+  // Timestamps
+  createdAt    DateTime @default(now())
+  paidAt       DateTime?
+  expiresAt    DateTime
 
-  memberships RoomMember[]
-  messages    Message[]
+  room Room?
 
-  @@index([expiresAt])
+  @@index([status, expiresAt])
+  @@index([sepayRef])
 }
 
+// =============================================================
+// ROOM — đơn vị chính của sản phẩm
+// =============================================================
 model Room {
-  id        String     @id @default(uuid())
-  darkIdA   String
-  darkIdB   String?
-  status    String     @default("PENDING")
-  createdAt DateTime   @default(now())
-  expiresAt DateTime
+  id            String   @id @default(uuid())
+  inviteToken   String   @unique
+  ownerGuestId  String
+  duration      Int
+  maxMembers    Int
+  status        String   @default("ACTIVE")
+  paymentId     String?  @unique
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
 
+  payment  Payment?     @relation(fields: [paymentId], references: [id])
   members  RoomMember[]
   messages Message[]
 
-  @@index([expiresAt])
+  @@index([inviteToken])
   @@index([status, expiresAt])
+  @@index([expiresAt])
 }
 
+// =============================================================
+// ROOM MEMBER — khách vô danh tham gia phòng
+// =============================================================
 model RoomMember {
+  id        String    @id @default(uuid())
   roomId    String
-  sessionId String
-  joinedAt  DateTime @default(now())
+  guestId   String
+  handle    String    @default("Ẩn danh")
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+  isOwner   Boolean   @default(false)
 
-  room    Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
-  @@id([roomId, sessionId])
-  @@index([sessionId])
+  @@unique([roomId, guestId])
+  @@index([roomId])
+  @@index([guestId])
 }
 
+// =============================================================
+// MESSAGE — tin nhắn
+// =============================================================
 model Message {
-  id         String    @id @default(uuid())
-  roomId     String
-  senderId   String
-  type       String
-  body       String?
-  recalledAt DateTime?
-  createdAt  DateTime  @default(now())
+  id            String    @id @default(uuid())
+  roomId        String
+  senderGuestId String
+  senderHandle  String
+  type          String
+  body          String?
+  recalledAt    DateTime?
+  createdAt     DateTime  @default(now())
 
   room        Room         @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  sender      Session      @relation(fields: [senderId], references: [id])
   attachments Attachment[]
 
   @@index([roomId, createdAt])
 }
 
+// =============================================================
+// ATTACHMENT — file đính kèm
+// =============================================================
 model Attachment {
   id         String   @id @default(uuid())
   messageId  String
@@ -80,4 +112,17 @@ model Attachment {
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([messageId])
+}
+
+// =============================================================
+// CLEANUP LOG — nhật ký dọn dẹp (audit)
+// =============================================================
+model CleanupLog {
+  id         String   @id @default(uuid())
+  entityType String
+  entityId   String
+  reason     String
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, createdAt])
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import VoiceBubble from './VoiceBubble';
 
 interface Attachment {
   id: string;
@@ -153,22 +154,9 @@ export default function MessageContent({ message, isOwn }: MessageContentProps) 
   }
 
   if (message.type === 'VOICE' && message.attachments?.[0]) {
-    const attachment = message.attachments[0];
     return (
-      <div className="flex items-center gap-3 bg-black/20 rounded-lg p-3 min-w-[200px]">
-        <button className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </button>
-        <div className="flex-1">
-          <div className="h-1 bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full w-1/3 bg-white/60 rounded-full" />
-          </div>
-        </div>
-        <span className="text-xs text-white/60">
-          {Math.floor((attachment.byteSize / 16000) || 0)}s
-        </span>
+      <div className="-mx-2">
+        <VoiceBubble attachment={message.attachments[0]} isOwn={isOwn} />
       </div>
     );
   }

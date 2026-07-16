@@ -1,3 +1,3 @@
 export { useSocket } from './useSocket';
-export { useSession } from './useSession';
+export { useRoomTimer } from './useRoomTimer';
 export * from './useStore';

@@ -1,18 +1,21 @@
 import { z } from 'zod';
 
-export const DARK_ID_REGEX = /^DT-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+export const INVITE_TOKEN_REGEX = /^[A-Za-z0-9]{16,24}$/;
 
-export const createSessionSchema = z.object({});
-
-export const inviteSchema = z.object({
-  targetDarkId: z.string().regex(DARK_ID_REGEX, 'Invalid Dark ID format'),
+export const createPaymentSchema = z.object({
+  duration: z.union([z.literal(10), z.literal(30), z.literal(60), z.literal(120)]),
+  maxMembers: z.union([z.literal(2), z.literal(5), z.literal(10), z.literal(20)]),
+  agreedToTerms: z.literal(true, {
+    errorMap: () => ({ message: 'Bạn phải đồng ý với Điều khoản sử dụng để tiếp tục.' }),
+  }),
+  agreedAt: z.string().datetime({ message: 'Invalid timestamp' }),
+  termsVersion: z.string().min(1),
 });
 
 export const messageSchema = z.object({
   roomId: z.string().uuid(),
   type: z.enum(['TEXT', 'IMAGE', 'VIDEO', 'FILE', 'VOICE', 'SYSTEM']),
   body: z.string().max(4000).optional(),
-  attachmentId: z.string().uuid().optional(),
 });
 
 export const presignSchema = z.object({
@@ -27,48 +30,11 @@ export const completeUploadSchema = z.object({
   checksum: z.string().length(64),
 });
 
-export const roomIdSchema = z.object({
-  id: z.string().uuid(),
-});
-
-export const messageIdSchema = z.object({
-  id: z.string().uuid(),
-});
-
-// Allowed MIME types by category
-export const ALLOWED_MIME_TYPES = {
-  image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-  video: ['video/mp4', 'video/webm'],
-  voice: ['audio/mp3', 'audio/ogg', 'audio/webm', 'audio/mpeg'],
-  file: ['application/pdf', 'application/zip', 'application/x-rar-compressed'],
-} as const;
-
-// Max file sizes in bytes
-export const MAX_FILE_SIZES = {
-  image: 20 * 1024 * 1024, // 20 MB
-  video: 100 * 1024 * 1024, // 100 MB
-  voice: 30 * 1024 * 1024, // 30 MB
-  file: 100 * 1024 * 1024, // 100 MB
-} as const;
-
-export function validateMimeType(
-  mimeType: string
-): 'image' | 'video' | 'voice' | 'file' | null {
-  if (ALLOWED_MIME_TYPES.image.includes(mimeType as any)) return 'image';
-  if (ALLOWED_MIME_TYPES.video.includes(mimeType as any)) return 'video';
-  if (ALLOWED_MIME_TYPES.voice.includes(mimeType as any)) return 'voice';
-  if (ALLOWED_MIME_TYPES.file.includes(mimeType as any)) return 'file';
-  return null;
-}
-
-export function getMaxFileSize(type: 'image' | 'video' | 'voice' | 'file'): number {
-  return MAX_FILE_SIZES[type];
-}
-
+// Sanitize text body
 export function sanitizeText(text: string): string {
   return text
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/javascript:/gi, '') // Remove javascript: URLs
-    .replace(/on\w+=/gi, '') // Remove event handlers
+    .replace(/<[^>]*>/g, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+=/gi, '')
     .trim();
 }

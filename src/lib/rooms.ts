@@ -1,55 +1,76 @@
-import crypto from 'crypto';
+/**
+ * Room in-memory cache + business logic.
+ * Persistent data ở Prisma (xem src/services/room.service.ts).
+ *
+ * NOTE: `joinMember`/`leaveMember` được thực hiện qua Prisma để persist,
+ * nhưng cache này giữ metadata để tra cứu nhanh và check capacity.
+ */
 
-// IMPORTANT: Use globalThis to survive Next.js HMR module re-evaluation.
-// Without this, in-memory state is lost every time the API route is recompiled.
+import crypto from 'crypto';
 
 interface RoomsModule {
   rooms: Map<string, Room>;
-  pendingInvites: Map<string, PendingInvite>;
+  tokenIndex: Map<string, string>;
 }
 
 declare global {
   // eslint-disable-next-line no-var
-  var __darktalkRooms: RoomsModule | undefined;
+  var __phongkinRooms: RoomsModule | undefined;
 }
 
 function getStore(): RoomsModule {
-  if (!globalThis.__darktalkRooms) {
-    globalThis.__darktalkRooms = {
+  if (!globalThis.__phongkinRooms) {
+    globalThis.__phongkinRooms = {
       rooms: new Map<string, Room>(),
-      pendingInvites: new Map<string, PendingInvite>(),
+      tokenIndex: new Map<string, string>(),
     };
   }
-  return globalThis.__darktalkRooms;
+  return globalThis.__phongkinRooms;
 }
+
+export type RoomStatus = 'ACTIVE' | 'FULL' | 'EXPIRED';
 
 export interface Room {
   id: string;
-  darkIdA: string;
-  darkIdB: string | null;
-  status: 'PENDING' | 'ACTIVE' | 'REJECTED' | 'EXPIRED';
-  createdAt: Date;
+  inviteToken: string;
+  ownerGuestId: string;
+  duration: number;
+  maxMembers: number;
+  status: RoomStatus;
+  paymentId: string;
   expiresAt: Date;
+  createdAt: Date;
 }
 
-export interface PendingInvite {
-  roomId: string;
-  fromDarkId: string;
-  inviterSessionId: string;
-  createdAt: number;
+export function cacheRoom(room: Room): void {
+  const store = getStore();
+  store.rooms.set(room.id, room);
+  store.tokenIndex.set(room.inviteToken, room.id);
 }
 
-export function createRoom(inviterDarkId: string, inviteeDarkId: string): Room {
+export function createRoom(params: {
+  ownerGuestId: string;
+  duration: number;
+  maxMembers: number;
+  paymentId: string;
+  inviteToken: string;
+}): Room {
   const id = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + params.duration * 60 * 1000);
+
   const room: Room = {
     id,
-    darkIdA: inviterDarkId,
-    darkIdB: inviteeDarkId,
-    status: 'PENDING',
+    inviteToken: params.inviteToken,
+    ownerGuestId: params.ownerGuestId,
+    duration: params.duration,
+    maxMembers: params.maxMembers,
+    status: 'ACTIVE',
+    paymentId: params.paymentId,
+    expiresAt,
     createdAt: new Date(),
-    expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
   };
-  getStore().rooms.set(id, room);
+
+  cacheRoom(room);
   return room;
 }
 
@@ -57,37 +78,40 @@ export function getRoom(roomId: string): Room | undefined {
   return getStore().rooms.get(roomId);
 }
 
-export function updateRoomStatus(roomId: string, status: Room['status']): Room | undefined {
+export function getRoomByInviteToken(token: string): Room | undefined {
+  const store = getStore();
+  const id = store.tokenIndex.get(token);
+  if (!id) return undefined;
+  return store.rooms.get(id);
+}
+
+export function setRoomStatus(roomId: string, status: RoomStatus): Room | undefined {
   const room = getStore().rooms.get(roomId);
   if (!room) return undefined;
   room.status = status;
-  getStore().rooms.set(roomId, room);
   return room;
 }
 
-export function closeRoom(roomId: string): boolean {
-  return getStore().rooms.delete(roomId);
+export function expireRoom(roomId: string): Room | undefined {
+  return setRoomStatus(roomId, 'EXPIRED');
 }
 
-export function getRoomsByDarkId(darkId: string): Room[] {
+export function markRoomFull(roomId: string): Room | undefined {
+  return setRoomStatus(roomId, 'FULL');
+}
+
+export function deleteRoom(roomId: string): boolean {
+  const store = getStore();
+  const room = store.rooms.get(roomId);
+  if (!room) return false;
+  store.rooms.delete(roomId);
+  store.tokenIndex.delete(room.inviteToken);
+  return true;
+}
+
+export function getAllActiveRooms(): Room[] {
+  const now = Date.now();
   return Array.from(getStore().rooms.values()).filter(
-    (r) => (r.darkIdA === darkId || r.darkIdB === darkId) &&
-           (r.status === 'PENDING' || r.status === 'ACTIVE')
+    (r) => r.status !== 'EXPIRED' && r.expiresAt.getTime() > now
   );
-}
-
-export function setInvite(darkId: string, invite: PendingInvite): void {
-  getStore().pendingInvites.set(darkId, invite);
-}
-
-export function getInvite(darkId: string): PendingInvite | undefined {
-  return getStore().pendingInvites.get(darkId);
-}
-
-export function deleteInvite(darkId: string): void {
-  getStore().pendingInvites.delete(darkId);
-}
-
-export function getAllPendingInvites(): Map<string, PendingInvite> {
-  return getStore().pendingInvites;
 }

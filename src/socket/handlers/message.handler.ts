@@ -4,14 +4,20 @@ import { SOCKET_EVENTS } from '../events';
 import { sendMessageService, recallMessageService, deleteMessageService } from '@/services/message.service';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { getAttachment } from '@/lib/storage-local';
+import prisma from '@/lib/prisma';
 
-// In-memory typing users
-const typingUsers = new Map<string, Set<string>>();
+const typingUsers = new Map<string, Map<string, string>>(); // roomId -> { socketId: guestId }
+
+function getTypingMap(roomId: string): Map<string, string> {
+  if (!typingUsers.has(roomId)) {
+    typingUsers.set(roomId, new Map());
+  }
+  return typingUsers.get(roomId)!;
+}
 
 export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSocket): void {
-  // Send message
   socket.on(SOCKET_EVENTS.MESSAGE_SEND, async (data: {
-    roomId: string;
+    roomId?: string;
     type: string;
     body?: string;
     attachmentId?: string;
@@ -23,20 +29,35 @@ export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSoc
     };
   }) => {
     try {
-      const { roomId, type, body, attachmentId, attachmentMeta } = data;
-
-      // Rate limit check
-      const { allowed } = await checkRateLimit(socket.sessionId!, 'message');
-
-      if (!allowed) {
+      if (!socket.guestId || !socket.roomId) {
         return socket.emit(SOCKET_EVENTS.ERROR, {
-          code: 'RATE_LIMITED',
-          message: 'Too many messages. Please slow down.',
+          code: 'NOT_AUTHED',
+          message: 'Not authenticated.',
         });
       }
 
-      // Resolve attachment. Prefer attachmentMeta sent by client (skip DB),
-      // otherwise look up by id in local storage map.
+      const { type, body, attachmentId, attachmentMeta } = data;
+
+      const { allowed } = await checkRateLimit(socket.guestId, 'message');
+      if (!allowed) {
+        return socket.emit(SOCKET_EVENTS.ERROR, {
+          code: 'RATE_LIMITED',
+          message: 'Bạn gửi tin nhắn quá nhanh. Vui lòng chậm lại.',
+        });
+      }
+
+      // Chặn gửi nếu phòng đã expired giữa chừng (race với cron cleanup)
+      const liveRoom = await prisma.room.findUnique({
+        where: { id: socket.roomId },
+        select: { status: true, expiresAt: true },
+      });
+      if (!liveRoom || liveRoom.status === 'EXPIRED' || liveRoom.expiresAt.getTime() <= Date.now()) {
+        return socket.emit(SOCKET_EVENTS.ERROR, {
+          code: 'ROOM_EXPIRED',
+          message: 'Phòng đã hết hạn.',
+        });
+      }
+
       let attachments = undefined;
       if (attachmentMeta) {
         attachments = [{
@@ -59,15 +80,25 @@ export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSoc
         }
       }
 
-      // Send message
+      const member = await prisma.roomMember.findFirst({
+        where: { roomId: socket.roomId, guestId: socket.guestId, leftAt: null },
+        select: { handle: true },
+      });
+      const handle = member?.handle;
+
+      if (!handle) {
+        return socket.emit(SOCKET_EVENTS.ERROR, {
+          code: 'NOT_JOINED',
+          message: 'Bạn chưa tham gia phòng.',
+        });
+      }
+
       const result = await sendMessageService({
-        roomId,
-        senderId: socket.sessionId!,
-        senderDarkId: socket.darkId!,
-        senderHandle: 'Anon',
+        roomId: socket.roomId,
+        senderGuestId: socket.guestId,
+        senderHandle: handle,
         type: type as any,
         body,
-        attachmentId,
         attachments,
       });
 
@@ -78,15 +109,11 @@ export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSoc
         });
       }
 
-      // Emit to all in room including sender
       const messageData = {
         id: result.message.id,
         roomId: result.message.roomId,
-        senderId: result.message.senderId,
-        sender: {
-          darkId: socket.darkId,
-          handle: 'Anon',
-        },
+        senderGuestId: result.message.senderGuestId,
+        senderHandle: result.message.senderHandle,
         type: result.message.type,
         body: result.message.body,
         attachments: result.message.attachments,
@@ -94,34 +121,30 @@ export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSoc
         recalledAt: null,
       };
 
-      io.to(roomId).emit(SOCKET_EVENTS.MESSAGE_NEW, messageData);
+      io.to(socket.roomId).emit(SOCKET_EVENTS.MESSAGE_NEW, messageData);
 
-      // Stop typing indicator
-      const roomTyping = typingUsers.get(roomId);
-      if (roomTyping) {
-        roomTyping.delete(socket.darkId!);
-      }
-      io.to(roomId).emit(SOCKET_EVENTS.TYPING_UPDATE, {
-        roomId,
-        darkId: socket.darkId,
+      // Stop typing
+      const roomTyping = getTypingMap(socket.roomId);
+      roomTyping.delete(socket.id);
+      io.to(socket.roomId).emit(SOCKET_EVENTS.TYPING_UPDATE, {
+        roomId: socket.roomId,
+        guestId: socket.guestId,
         isTyping: false,
       });
     } catch (error) {
       console.error('Error sending message:', error);
       socket.emit(SOCKET_EVENTS.ERROR, {
         code: 'SEND_ERROR',
-        message: 'Failed to send message.',
+        message: 'Không thể gửi tin nhắn.',
       });
     }
   });
 
-  // Recall message
   socket.on(SOCKET_EVENTS.MESSAGE_RECALL, async (data: { messageId: string }) => {
     try {
-      const { messageId } = data;
+      if (!socket.guestId || !socket.roomId) return;
 
-      const result = await recallMessageService(messageId, socket.sessionId!);
-
+      const result = await recallMessageService(data.messageId, socket.guestId);
       if (!result.success) {
         return socket.emit(SOCKET_EVENTS.ERROR, {
           code: 'RECALL_ERROR',
@@ -129,28 +152,22 @@ export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSoc
         });
       }
 
-      // Emit recall to all in room
-      socket.rooms.forEach((roomId) => {
-        if (roomId !== socket.id) {
-          io.to(roomId).emit(SOCKET_EVENTS.MESSAGE_RECALLED, { messageId });
-        }
-      });
+      // io.to (không phải socket.to) để cả sender cũng nhận được event recall UI
+      io.to(socket.roomId).emit(SOCKET_EVENTS.MESSAGE_RECALLED, { messageId: data.messageId });
     } catch (error) {
       console.error('Error recalling message:', error);
       socket.emit(SOCKET_EVENTS.ERROR, {
         code: 'RECALL_ERROR',
-        message: 'Failed to recall message.',
+        message: 'Không thể thu hồi tin nhắn.',
       });
     }
   });
 
-  // Delete message
   socket.on(SOCKET_EVENTS.MESSAGE_DELETE, async (data: { messageId: string }) => {
     try {
-      const { messageId } = data;
+      if (!socket.guestId || !socket.roomId) return;
 
-      const result = await deleteMessageService(messageId, socket.sessionId!);
-
+      const result = await deleteMessageService(data.messageId, socket.guestId);
       if (!result.success) {
         return socket.emit(SOCKET_EVENTS.ERROR, {
           code: 'DELETE_ERROR',
@@ -158,58 +175,42 @@ export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSoc
         });
       }
 
-      // Emit deletion to all in room
-      socket.rooms.forEach((roomId) => {
-        if (roomId !== socket.id) {
-          io.to(roomId).emit(SOCKET_EVENTS.MESSAGE_DELETED, { messageId });
-        }
-      });
+      io.to(socket.roomId).emit(SOCKET_EVENTS.MESSAGE_DELETED, { messageId: data.messageId });
     } catch (error) {
       console.error('Error deleting message:', error);
       socket.emit(SOCKET_EVENTS.ERROR, {
         code: 'DELETE_ERROR',
-        message: 'Failed to delete message.',
+        message: 'Không thể xóa tin nhắn.',
       });
     }
   });
 
-  // Typing start
-  socket.on(SOCKET_EVENTS.TYPING_START, async (data: { roomId: string }) => {
-    try {
-      const { roomId } = data;
-
-      if (!typingUsers.has(roomId)) {
-        typingUsers.set(roomId, new Set());
-      }
-      typingUsers.get(roomId)!.add(socket.darkId!);
-
-      socket.to(roomId).emit(SOCKET_EVENTS.TYPING_UPDATE, {
-        roomId,
-        darkId: socket.darkId,
-        isTyping: true,
-      });
-    } catch (error) {
-      console.error('Error updating typing status:', error);
-    }
+  socket.on(SOCKET_EVENTS.TYPING_START, () => {
+    if (!socket.guestId || !socket.roomId) return;
+    const map = getTypingMap(socket.roomId);
+    map.set(socket.id, socket.guestId);
+    socket.to(socket.roomId).emit(SOCKET_EVENTS.TYPING_UPDATE, {
+      roomId: socket.roomId,
+      guestId: socket.guestId,
+      isTyping: true,
+    });
   });
 
-  // Typing stop
-  socket.on(SOCKET_EVENTS.TYPING_STOP, async (data: { roomId: string }) => {
-    try {
-      const { roomId } = data;
+  socket.on(SOCKET_EVENTS.TYPING_STOP, () => {
+    if (!socket.guestId || !socket.roomId) return;
+    const map = getTypingMap(socket.roomId);
+    map.delete(socket.id);
+    socket.to(socket.roomId).emit(SOCKET_EVENTS.TYPING_UPDATE, {
+      roomId: socket.roomId,
+      guestId: socket.guestId,
+      isTyping: false,
+    });
+  });
 
-      const roomTyping = typingUsers.get(roomId);
-      if (roomTyping) {
-        roomTyping.delete(socket.darkId!);
-      }
-
-      socket.to(roomId).emit(SOCKET_EVENTS.TYPING_UPDATE, {
-        roomId,
-        darkId: socket.darkId,
-        isTyping: false,
-      });
-    } catch (error) {
-      console.error('Error updating typing status:', error);
-    }
+  // Dọn typing state khi disconnect (race với user đóng tab giữa chừng)
+  socket.on('disconnect', () => {
+    if (!socket.roomId) return;
+    const map = getTypingMap(socket.roomId);
+    map.delete(socket.id);
   });
 }

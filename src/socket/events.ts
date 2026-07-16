@@ -1,3 +1,8 @@
+/**
+ * Socket.IO event constants cho Phòng Kín.
+ * Bỏ các event Dark ID / invite, thêm event phòng chat.
+ */
+
 export const SOCKET_EVENTS = {
   // Client -> Server
   AUTH: 'auth',
@@ -13,16 +18,14 @@ export const SOCKET_EVENTS = {
   // Server -> Client
   AUTH_SUCCESS: 'auth:success',
   AUTH_FAIL: 'auth:fail',
-  ROOM_CREATED: 'room:created',
   ROOM_JOINED: 'room:joined',
   ROOM_LEFT: 'room:left',
-  ROOM_INVITE: 'room:invite',
-  ROOM_ACCEPTED: 'room:accepted',
-  ROOM_REJECTED: 'room:rejected',
+  ROOM_MEMBER_JOINED: 'room:member-joined',
+  ROOM_MEMBER_LEFT: 'room:member-left',
+  ROOM_CLOSED: 'room:closed',
   MESSAGE_NEW: 'message:new',
   MESSAGE_RECALLED: 'message:recalled',
   MESSAGE_DELETED: 'message:deleted',
-  MESSAGE_READ: 'message:read',
   TYPING_UPDATE: 'typing:update',
   PRESENCE_UPDATE: 'presence:update',
   ERROR: 'error',

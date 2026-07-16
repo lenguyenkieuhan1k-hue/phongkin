@@ -1,0 +1,27 @@
+
+> phong-kin@0.1.0 dev
+> tsx watch src/server.ts
+
+Socket.IO initialized
+[lifecycle] cleanup loops started
+> Phòng Kín ready on http://localhost:3000
+> Socket.IO ready
+prisma:query SELECT `main`.`Room`.`id`, `main`.`Room`.`inviteToken`, `main`.`Room`.`ownerGuestId`, `main`.`Room`.`duration`, `main`.`Room`.`maxMembers`, `main`.`Room`.`status`, `main`.`Room`.`paymentId`, `main`.`Room`.`expiresAt`, `main`.`Room`.`createdAt` FROM `main`.`Room` WHERE (`main`.`Room`.`expiresAt` < ? AND `main`.`Room`.`status` <> ?) LIMIT ? OFFSET ?
+prisma:query BEGIN IMMEDIATE
+prisma:query UPDATE `main`.`Payment` SET `status` = ? WHERE (`main`.`Payment`.`status` = ? AND `main`.`Payment`.`expiresAt` < ?)
+prisma:query COMMIT
+ ✓ Compiled /api/payment/create in 487ms (86 modules)
+prisma:query SELECT 1
+prisma:query INSERT INTO `main`.`Payment` (`id`, `amount`, `duration`, `maxMembers`, `status`, `sepayRef`, `qrContent`, `createdAt`, `paidAt`, `expiresAt`) VALUES (?,?,?,?,?,?,?,?,?,?) RETURNING `id` AS `id`, `amount` AS `amount`, `duration` AS `duration`, `maxMembers` AS `maxMembers`, `status` AS `status`, `sepayRef` AS `sepayRef`, `qrContent` AS `qrContent`, `createdAt` AS `createdAt`, `paidAt` AS `paidAt`, `expiresAt` AS `expiresAt`
+prisma:query UPDATE `main`.`Payment` SET `sepayRef` = ?, `qrContent` = ? WHERE (`main`.`Payment`.`id` = ? AND 1=1) RETURNING `id` AS `id`, `amount` AS `amount`, `duration` AS `duration`, `maxMembers` AS `maxMembers`, `status` AS `status`, `sepayRef` AS `sepayRef`, `qrContent` AS `qrContent`, `createdAt` AS `createdAt`, `paidAt` AS `paidAt`, `expiresAt` AS `expiresAt`
+prisma:query INSERT INTO `main`.`Room` (`id`, `inviteToken`, `ownerGuestId`, `duration`, `maxMembers`, `status`, `paymentId`, `expiresAt`, `createdAt`) VALUES (?,?,?,?,?,?,?,?,?) RETURNING `id` AS `id`, `inviteToken` AS `inviteToken`, `ownerGuestId` AS `ownerGuestId`, `duration` AS `duration`, `maxMembers` AS `maxMembers`, `status` AS `status`, `paymentId` AS `paymentId`, `expiresAt` AS `expiresAt`, `createdAt` AS `createdAt`
+prisma:query INSERT INTO `main`.`RoomMember` (`id`, `roomId`, `guestId`, `handle`, `joinedAt`, `isOwner`) VALUES (?,?,?,?,?,?) RETURNING `id` AS `id`, `roomId` AS `roomId`, `guestId` AS `guestId`, `handle` AS `handle`, `joinedAt` AS `joinedAt`, `leftAt` AS `leftAt`, `isOwner` AS `isOwner`
+[payment] BYPASS — auto-created room=6f64e3dc-4f7a-4029-a188-b11c66484059 token=u6nWpQPHyh9csAT6sF
+ POST /api/payment/create 200 in 911ms
+ ✓ Compiled /api/rooms/[token] in 121ms (88 modules)
+prisma:query SELECT COUNT(*) FROM (SELECT `main`.`RoomMember`.`id` FROM `main`.`RoomMember` WHERE (`main`.`RoomMember`.`roomId` = ? AND `main`.`RoomMember`.`leftAt` IS NULL) LIMIT ? OFFSET ?) AS `sub`
+prisma:query SELECT `main`.`RoomMember`.`id`, `main`.`RoomMember`.`roomId`, `main`.`RoomMember`.`guestId`, `main`.`RoomMember`.`handle`, `main`.`RoomMember`.`joinedAt`, `main`.`RoomMember`.`leftAt`, `main`.`RoomMember`.`isOwner` FROM `main`.`RoomMember` WHERE (`main`.`RoomMember`.`roomId` = ? AND `main`.`RoomMember`.`guestId` = ? AND `main`.`RoomMember`.`leftAt` IS NULL) LIMIT ? OFFSET ?
+prisma:query INSERT INTO `main`.`RoomMember` (`id`, `roomId`, `guestId`, `handle`, `joinedAt`, `isOwner`) VALUES (?,?,?,?,?,?) RETURNING `id` AS `id`, `roomId` AS `roomId`, `guestId` AS `guestId`, `handle` AS `handle`, `joinedAt` AS `joinedAt`, `leftAt` AS `leftAt`, `isOwner` AS `isOwner`
+prisma:query SELECT COUNT(*) FROM (SELECT `main`.`RoomMember`.`id` FROM `main`.`RoomMember` WHERE (`main`.`RoomMember`.`roomId` = ? AND `main`.`RoomMember`.`leftAt` IS NULL) LIMIT ? OFFSET ?) AS `sub`
+ GET /api/rooms/u6nWpQPHyh9csAT6sF 200 in 823ms
+prisma:query SELECT `main`.`Room`.`id`, `main`.`Room`.`inviteToken`, `main`.`Room`.`ownerGuestId`, `main`.`Room`.`duration`, `main`.`Room`.`maxMembers`, `main`.`Room`.`status`, `main`.`Room`.`paymentId`, `main`.`Room`.`expiresAt`, `main`.`Room`.`createdAt` FROM `main`.`Room` WHERE (`main`.`Room`.`expiresAt` < ? AND `main`.`Room`.`status` <> ?) LIMIT ? OFFSET ?

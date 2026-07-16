@@ -4,24 +4,23 @@ import { authMiddleware } from '../auth.middleware';
 import { handleChatEvents } from './chat.handler';
 import { handleMessageEvents } from './message.handler';
 import { handlePresenceEvents } from './presence.handler';
-import { handleInviteEvents } from './invite.handler';
 
 export function setupSocketHandlers(io: SocketIOServer): void {
-  // Auth middleware
   io.use(authMiddleware);
 
   io.on('connection', async (socket: AuthenticatedSocket) => {
-    console.log(`User connected: ${socket.darkId} (${socket.id})`);
+    console.log(
+      `[socket] connected: roomId=${socket.roomId} guestId=${socket.guestId?.slice(0, 6)}... (${socket.id})`
+    );
 
-    // Setup event handlers
     handleChatEvents(io, socket);
     handleMessageEvents(io, socket);
     handlePresenceEvents(io, socket);
-    handleInviteEvents(io, socket);
 
-    // Handle disconnect
     socket.on('disconnect', () => {
-      console.log(`User disconnected: ${socket.darkId} (${socket.id})`);
+      console.log(
+        `[socket] disconnected: roomId=${socket.roomId} guestId=${socket.guestId?.slice(0, 6)}...`
+      );
     });
   });
 }

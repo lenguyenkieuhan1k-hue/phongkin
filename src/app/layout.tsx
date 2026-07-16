@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'DarkTalk - Anonymous Chat',
-  description: 'Connect anonymously. Chat privately. No accounts, no tracking.',
+  title: 'Phòng Kín - Họp ở đây, dừng ở đây',
+  description: 'Phòng chat riêng tư theo thời gian. Không tài khoản. Không lưu lại.',
   icons: {
     icon: '/favicon.ico',
   },
@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="vi" className="dark">
       <body className="min-h-screen bg-dark-900 antialiased">
         {children}
       </body>
