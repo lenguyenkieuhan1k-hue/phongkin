@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "next build --no-lint",
+    "build": "npx prisma generate && next build --no-lint",
+    "postinstall": "prisma generate",
     "start": "NODE_ENV=production tsx src/server.ts",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
+    "db:migrate": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts"
   },
