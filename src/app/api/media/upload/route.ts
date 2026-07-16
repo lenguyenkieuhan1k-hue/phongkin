@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
       type: classification.type,
       mime: classification.mime,
       attachment: buildAttachmentRecord(meta),
-      url: meta.storageKey,
+      url: `/api/media/${meta.id}`,
     });
   } catch (error) {
     console.error('Upload error:', error);

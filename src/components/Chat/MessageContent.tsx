@@ -61,11 +61,12 @@ export default function MessageContent({ message, isOwn }: MessageContentProps) 
 
   if (message.type === 'IMAGE' && message.attachments?.[0]) {
     const attachment = message.attachments[0];
+    const src = `/api/media/${attachment.id}`;
     return (
       <div className="space-y-2 -mx-1">
-        <a href={attachment.storageKey} target="_blank" rel="noreferrer" className="block">
+        <a href={src} target="_blank" rel="noreferrer" className="block">
           <img
-            src={attachment.storageKey}
+            src={src}
             alt="Shared image"
             className="rounded-lg max-w-[320px] max-h-[400px] object-cover hover:opacity-95 transition-opacity cursor-pointer"
             loading="lazy"
@@ -80,11 +81,12 @@ export default function MessageContent({ message, isOwn }: MessageContentProps) 
 
   if (message.type === 'VIDEO' && message.attachments?.[0]) {
     const attachment = message.attachments[0];
+    const src = `/api/media/${attachment.id}`;
     const filename = attachment.storageKey.split('/').pop() || 'video';
     return (
       <div className="space-y-2 -mx-1">
         <video
-          src={attachment.storageKey}
+          src={src}
           controls
           playsInline
           preload="metadata"
@@ -102,6 +104,7 @@ export default function MessageContent({ message, isOwn }: MessageContentProps) 
 
   if (message.type === 'AUDIO' && message.attachments?.[0]) {
     const attachment = message.attachments[0];
+    const src = `/api/media/${attachment.id}`;
     const filename = attachment.storageKey.split('/').pop() || 'audio';
     return (
       <div className="space-y-2 min-w-[240px]">
@@ -112,7 +115,7 @@ export default function MessageContent({ message, isOwn }: MessageContentProps) 
           <p className="text-xs text-gray-300 truncate flex-1">{filename}</p>
         </div>
         <audio
-          src={attachment.storageKey}
+          src={src}
           controls
           preload="metadata"
           className="w-full"
@@ -126,6 +129,7 @@ export default function MessageContent({ message, isOwn }: MessageContentProps) 
 
   if (message.type === 'FILE' && message.attachments?.[0]) {
     const attachment = message.attachments[0];
+    const src = `/api/media/${attachment.id}`;
     return (
       <div className="flex items-center gap-3 bg-black/20 rounded-lg p-3 min-w-[220px]">
         <div className="w-10 h-10 rounded-lg bg-dark-700 flex items-center justify-center flex-shrink-0">
@@ -136,7 +140,7 @@ export default function MessageContent({ message, isOwn }: MessageContentProps) 
           <p className="text-xs text-gray-400">{formatBytes(attachment.byteSize)}</p>
         </div>
         <a
-          href={attachment.storageKey}
+          href={src}
           download
           target="_blank"
           rel="noreferrer"

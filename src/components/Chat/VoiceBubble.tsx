@@ -165,7 +165,7 @@ export default function VoiceBubble({ attachment, isOwn }: VoiceBubbleProps) {
         </div>
       </div>
 
-      <audio ref={audioRef} src={attachment.storageKey} preload="metadata" />
+      <audio ref={audioRef} src={`/api/media/${attachment.id}`} preload="metadata" />
     </div>
   );
 }
