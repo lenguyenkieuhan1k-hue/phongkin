@@ -14,6 +14,8 @@ import {
 import { TERMS_VERSION } from '@/lib/pricing';
 import TermsModal from '@/components/TermsModal';
 
+export const dynamic = 'force-dynamic';
+
 export default function CreatePage() {
   const router = useRouter();
   const [duration, setDuration] = useState<Duration>(60);
