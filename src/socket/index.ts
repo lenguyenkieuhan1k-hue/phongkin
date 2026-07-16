@@ -41,14 +41,15 @@ export async function initSocketIO(httpServer: HTTPServer | HTTPServerType): Pro
   const io = new SocketIOServer(httpServer, {
     cors: {
       origin: process.env.NODE_ENV === 'production'
-        ? ['https://phongkin.vn']
+        ? ['https://phongkin.pro', /^https:\/\/.*\.onrender\.com$/, /^https:\/\/.*\.vercel\.app$/]
         : ['http://localhost:3000', 'http://127.0.0.1:3000'],
       methods: ['GET', 'POST'],
       credentials: true,
     },
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'],
     pingTimeout: 60000,
     pingInterval: 25000,
+    allowEIO3: true,
   });
 
   if (adapter) {

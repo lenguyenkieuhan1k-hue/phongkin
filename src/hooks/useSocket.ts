@@ -34,16 +34,24 @@ export function useSocket(session: SessionData | null) {
       return;
     }
 
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000';
+    // Auto-detect: nếu ở production thì dùng https:// của chính origin (cùng host với API)
+    // Render free tier có thể block WS upgrade → bỏ transports:['websocket'] để có polling fallback
+    const isProd = typeof window !== 'undefined' && window.location.protocol === 'https:';
+    const wsUrl = isProd
+      ? window.location.origin
+      : (process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3000');
 
     if (!socket) {
       socket = io(wsUrl, {
         auth: { roomToken: session.roomToken, guestId: session.guestId },
-        transports: ['websocket'],
+        transports: ['polling', 'websocket'], // polling first → ổn định qua Render proxy
+        upgrade: true,
         reconnection: true,
-        reconnectionAttempts: 10,
+        reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
+        timeout: 20000,
+        path: '/socket.io',
       });
 
       if (typeof window !== 'undefined') {
