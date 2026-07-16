@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { handleWebhookService } from '@/services/payment.service';
 import { verifySepaySignature } from '@/lib/sepay';
 import type { SepayWebhookPayload } from '@/lib/sepay';
 
 export async function POST(request: NextRequest) {
   try {
-    const payload = (await request.json()) as SepayWebhookPayload;
-    console.log('[webhook] POST received:', JSON.stringify(payload));
+    // Lấy raw body text TRƯỚC khi parse JSON
+    const rawBody = await request.text();
+    const payload = JSON.parse(rawBody) as SepayWebhookPayload;
+    console.log('[webhook] POST received:', rawBody);
 
     // Verify SePay webhook signature
     const apiKey = process.env.SEPAY_API_KEY;
@@ -17,11 +20,20 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
       }
 
-      const rawBody = JSON.stringify(payload);
+      // Debug: log signature info
+      const expectedSig = crypto.createHmac('sha256', apiKey).update(rawBody).digest('hex');
+      console.log('[webhook] sig debug:', { 
+        receivedSig: signature.slice(0, 20) + '...', 
+        expectedSig: expectedSig.slice(0, 20) + '...',
+        match: signature === expectedSig,
+        apiKeyLen: apiKey.length 
+      });
+
       if (!verifySepaySignature(rawBody, signature, apiKey)) {
         console.log('[webhook] FAIL: invalid signature');
         return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
       }
+      console.log('[webhook] signature OK');
     } else {
       console.log('[webhook] no API key, skipping signature check');
     }
