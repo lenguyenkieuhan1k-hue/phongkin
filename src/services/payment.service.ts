@@ -155,7 +155,9 @@ export async function handleWebhookService(
   payload: SepayWebhookPayload
 ): Promise<HandleWebhookResult> {
   const refCode = parseSepayReference(payload.content ?? '');
+  console.log('[webhook] received:', { content: payload.content, refCode, amount: payload.transferAmount, paymentId: payload.id });
   if (!refCode) {
+    console.log('[webhook] FAIL: cannot parse refCode from content:', payload.content);
     return { success: false, message: 'Cannot parse reference from content' };
   }
 
@@ -165,8 +167,11 @@ export async function handleWebhookService(
   });
 
   if (!payment) {
+    console.log('[webhook] FAIL: payment not found for refCode:', refCode);
     return { success: false, message: 'Payment not found' };
   }
+
+  console.log('[webhook] found payment:', { id: payment.id, status: payment.status, amount: payment.amount, sepayRef: payment.sepayRef });
 
   if (payment.status === 'SUCCESS') {
     return {
@@ -183,8 +188,10 @@ export async function handleWebhookService(
 
   const verification = verifySepayWebhook(payload, payment.sepayRef, payment.amount);
   if (!verification.valid) {
+    console.log('[webhook] FAIL: verification:', { reason: verification.reason, expectedContent: payment.sepayRef, expectedAmount: payment.amount, payloadContent: payload.content, payloadAmount: payload.transferAmount });
     return { success: false, message: verification.reason ?? 'Verification failed' };
   }
+  console.log('[webhook] verification OK, creating room...');
 
   const inviteToken = createInviteToken();
   const tempOwnerId = `pending_${payment.id}`;

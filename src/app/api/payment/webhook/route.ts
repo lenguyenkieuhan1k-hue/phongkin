@@ -6,6 +6,7 @@ import type { SepayWebhookPayload } from '@/lib/sepay';
 export async function POST(request: NextRequest) {
   try {
     const payload = (await request.json()) as SepayWebhookPayload;
+    console.log('[webhook] POST received:', JSON.stringify(payload));
 
     // Verify SePay webhook signature
     const apiKey = process.env.SEPAY_API_KEY;
