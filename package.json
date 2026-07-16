@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "npx prisma generate && next build --no-lint",
+    "build": "npx prisma generate && npx prisma db push --accept-data-loss && next build --no-lint",
     "postinstall": "prisma generate",
+    "predeploy": "",
     "start": "NODE_ENV=production tsx src/server.ts",
     "lint": "next lint",
     "db:generate": "prisma generate",
