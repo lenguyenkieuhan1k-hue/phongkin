@@ -44,7 +44,6 @@ export default function MessageInput({}: MessageInputProps) {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
-  const socketRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -61,11 +60,10 @@ export default function MessageInput({}: MessageInputProps) {
   });
 
   useEffect(() => {
-    const socket = (window as any).__socket;
-    socketRef.current = socket;
-
     const handleRecall = (e: CustomEvent<{ messageId: string }>) => {
-      socketRef.current?.emit('message:recall', { messageId: e.detail.messageId });
+      // Đọc socket trực tiếp từ window mỗi lần — tránh race với useSocket hook
+      const sock = (window as any).__socket;
+      sock?.emit('message:recall', { messageId: e.detail.messageId });
     };
     window.addEventListener('phongkin-recall', handleRecall as EventListener);
     return () => window.removeEventListener('phongkin-recall', handleRecall as EventListener);
@@ -79,12 +77,12 @@ export default function MessageInput({}: MessageInputProps) {
     }
     if (!isTyping) {
       setIsTyping(true);
-      socketRef.current?.emit('typing:start');
+      (window as any).__socket?.emit('typing:start');
     }
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
-      socketRef.current?.emit('typing:stop');
+      (window as any).__socket?.emit('typing:stop');
     }, 2000);
   };
 
@@ -142,7 +140,7 @@ export default function MessageInput({}: MessageInputProps) {
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     if (isTyping) {
       setIsTyping(false);
-      socketRef.current?.emit('typing:stop');
+      (window as any).__socket?.emit('typing:stop');
     }
 
     // VOICE là loại riêng — type gửi đi là VOICE (không phải AUDIO)
@@ -160,7 +158,7 @@ export default function MessageInput({}: MessageInputProps) {
       };
     }
 
-    socketRef.current?.emit('message:send', {
+    (window as any).__socket?.emit('message:send', {
       type,
       body: trimmed || undefined,
       attachmentMeta,
