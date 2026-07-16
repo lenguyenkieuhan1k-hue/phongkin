@@ -180,9 +180,14 @@ export async function handleWebhookService(
     };
   }
 
-  if (payment.status === 'EXPIRED' || payment.expiresAt < new Date()) {
-    return { success: false, message: 'Payment expired' };
+  if (payment.status === 'EXPIRED') {
+    // Payment đã bị lifecycle đánh EXPIRED (status thực sự trong DB)
+    // Trả về success để SePay không retry, nhưng KHÔNG tạo phòng
+    return { success: true, message: 'Payment already expired, ignored' };
   }
+
+  // Bỏ check expiresAt: nếu user CK đúng nội dung thì vẫn xử lý
+  // (TTL chỉ để UI hết chờ, không phải gate chính)
 
   const verification = verifySepayWebhook(payload, payment.sepayRef, payment.amount);
   if (!verification.valid) {
