@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useMessageStore } from '@/hooks/useStore';
 import MessageBubble from './MessageBubble';
 import TypingIndicator from './TypingIndicator';
@@ -13,23 +13,60 @@ export default function MessageList({ guestId }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollEndRef = useRef<HTMLDivElement>(null);
   const messages = useMessageStore((s) => s.messages);
-  const isAtBottomRef = useRef(true);
+  const typingUsers = useMessageStore((s) => s.typingUsers);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Track scroll position để biết user đang ở đâu
+  // Auto-scroll to bottom when new messages arrive (if user is at bottom or not scrolling)
+  useEffect(() => {
+    // Clear any existing timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Only auto-scroll if user is not actively scrolling
+    if (!isUserScrolling && scrollEndRef.current) {
+      // Small delay to ensure DOM is updated
+      scrollTimeoutRef.current = setTimeout(() => {
+        scrollEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 50);
+    }
+
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [messages.length, typingUsers.length, isUserScrolling]);
+
+  // Track if user is scrolling manually
   const handleScroll = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    // Clear previous timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Set scrolling state
+    setIsUserScrolling(true);
+
+    // Reset scrolling state after user stops scrolling
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsUserScrolling(false);
+    }, 150);
+
+    // If user scrolls to bottom, keep them there
     const { scrollTop, scrollHeight, clientHeight } = container;
-    // User ở cuối nếu scrollTop + clientHeight >= scrollHeight - 100px
-    const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
-    if (isAtBottom) {
-      scrollEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    if (distanceFromBottom < 100) {
+      scrollEndRef.current?.scrollIntoView({ behavior: 'auto' });
     }
   }, []);
 

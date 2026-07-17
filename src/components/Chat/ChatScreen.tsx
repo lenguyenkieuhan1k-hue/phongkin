@@ -114,7 +114,7 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
   // Form nhập biệt danh
   if (phase === 'HANDLE') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-accent-950 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-dvh bg-gradient-to-br from-dark-950 via-dark-900 to-accent-950 flex items-center justify-center p-4 relative overflow-hidden">
         {/* Floating hearts background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[10%] left-[15%] text-4xl text-accent-400/20 animate-float" style={{ animationDelay: '0s' }}>♥</div>
@@ -204,7 +204,7 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
   if (!room || !guestId) return <LoadingScreen />;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 relative">
+    <div className="min-h-dvh flex flex-col bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 relative">
       {/* Floating hearts background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[5%] left-[10%] text-4xl text-accent-400/10 animate-float" style={{ animationDelay: '0s' }}>♥</div>
@@ -216,7 +216,7 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
       </div>
 
       <RoomHeader inviteToken={inviteToken} />
-      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full relative z-10">
+      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full relative z-10 pb-safe">
         <div className="flex-1 overflow-hidden">
           <MessageList guestId={guestId} />
         </div>

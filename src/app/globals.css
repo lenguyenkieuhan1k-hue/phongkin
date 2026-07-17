@@ -121,4 +121,14 @@
       transform: translateY(0);
     }
   }
+
+  /* Safe area padding for mobile devices with notches */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Ensure proper viewport height on mobile */
+  .min-h-dvh {
+    min-height: 100dvh;
+  }
 }

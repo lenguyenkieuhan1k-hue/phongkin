@@ -456,7 +456,7 @@ export default function MessageInput({}: MessageInputProps) {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar,.7z"
+            accept="image/*,video/*,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.mp4,.mov,.avi,.mkv,.webm,.m4v,.3gp,.pdf,.doc,.docx,.txt,.zip,.rar,.7z,audio/*"
             className="hidden"
             onChange={handleFileInputChange}
           />
