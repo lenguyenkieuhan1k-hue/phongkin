@@ -8,6 +8,8 @@ import {
   getRoomMembersService,
   leaveRoomService,
 } from '@/services/room.service';
+import { reportMessages } from '@/lib/report-messages';
+import { reportRoomHandles, REPORT_ROOM_ID } from '../report-room';
 
 // In-memory: socketId -> guestId (cho việc broadcast presence chính xác)
 const roomSockets = new Map<string, Map<string, string>>(); // roomId -> { socketId: guestId }
@@ -28,6 +30,57 @@ export function handleChatEvents(io: SocketIOServer, socket: AuthenticatedSocket
           code: 'NOT_AUTHED',
           message: 'Not authenticated.',
         });
+      }
+
+      // Special handling for Report Room
+      if (socket.roomId === REPORT_ROOM_ID) {
+        await socket.join(REPORT_ROOM_ID);
+
+        const sockets = getRoomSocketMap(REPORT_ROOM_ID);
+        sockets.set(socket.id, socket.guestId);
+
+        // Get handle from auth middleware
+        const handle = reportRoomHandles.get(socket.guestId) || 'Unknown';
+
+        // Return messages from in-memory store
+        socket.emit(SOCKET_EVENTS.ROOM_JOINED, {
+          roomId: REPORT_ROOM_ID,
+          inviteToken: REPORT_ROOM_ID,
+          messages: reportMessages.map((m) => ({
+            id: m.id,
+            roomId: m.roomId,
+            senderGuestId: m.senderGuestId,
+            senderHandle: m.senderHandle,
+            type: m.type,
+            body: m.body,
+            attachments: m.attachments,
+            createdAt: m.createdAt,
+            recalledAt: null,
+          })),
+          room: {
+            id: REPORT_ROOM_ID,
+            duration: 0,
+            maxMembers: 999,
+            status: 'ACTIVE',
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+          memberCount: sockets.size,
+          members: Array.from(sockets.values()).map((gid) => ({
+            guestId: gid,
+            handle: reportRoomHandles.get(gid) || 'Unknown',
+            isOwner: false,
+          })),
+          myGuestId: socket.guestId,
+        });
+
+        // Notify others
+        socket.to(REPORT_ROOM_ID).emit(SOCKET_EVENTS.ROOM_MEMBER_JOINED, {
+          guestId: socket.guestId,
+          handle,
+          memberCount: sockets.size,
+        });
+
+        return;
       }
 
       const room = await getRoomByIdService(socket.roomId);
@@ -104,6 +157,12 @@ export function handleChatEvents(io: SocketIOServer, socket: AuthenticatedSocket
       await socket.leave(socket.roomId);
       const sockets = getRoomSocketMap(socket.roomId);
       sockets.delete(socket.id);
+
+      // Remove from report room handles if applicable
+      if (socket.roomId === REPORT_ROOM_ID) {
+        reportRoomHandles.delete(socket.guestId);
+      }
+
       await leaveRoomService(socket.roomId, socket.guestId);
       socket.emit(SOCKET_EVENTS.ROOM_LEFT, { roomId: socket.roomId });
       socket.to(socket.roomId).emit(SOCKET_EVENTS.ROOM_MEMBER_LEFT, {
@@ -123,6 +182,12 @@ export function handleChatEvents(io: SocketIOServer, socket: AuthenticatedSocket
       const sockets = getRoomSocketMap(socket.roomId);
       if (sockets.has(socket.id)) {
         sockets.delete(socket.id);
+
+        // Remove from report room handles if applicable
+        if (socket.roomId === REPORT_ROOM_ID) {
+          reportRoomHandles.delete(socket.guestId);
+        }
+
         socket.to(socket.roomId).emit(SOCKET_EVENTS.ROOM_MEMBER_LEFT, {
           guestId: socket.guestId,
           memberCount: sockets.size,

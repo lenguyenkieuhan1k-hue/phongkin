@@ -5,6 +5,9 @@ import { sendMessageService, recallMessageService, deleteMessageService } from '
 import { checkRateLimit } from '@/lib/rateLimit';
 import { getAttachment } from '@/lib/storage-local';
 import prisma from '@/lib/prisma';
+import { reportMessages } from '@/lib/report-messages';
+import { reportRoomHandles, REPORT_ROOM_ID } from '../report-room';
+import { v4 as uuidv4 } from 'uuid';
 
 const typingUsers = new Map<string, Map<string, string>>(); // roomId -> { socketId: guestId }
 
@@ -44,6 +47,31 @@ export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSoc
           code: 'RATE_LIMITED',
           message: 'Bạn gửi tin nhắn quá nhanh. Vui lòng chậm lại.',
         });
+      }
+
+      // Special handling for Report Room (in-memory, no DB)
+      if (socket.roomId === REPORT_ROOM_ID) {
+        const handle = reportRoomHandles.get(socket.guestId) || 'Unknown';
+        const messageId = uuidv4();
+        const message = {
+          id: messageId,
+          roomId: REPORT_ROOM_ID,
+          senderGuestId: socket.guestId,
+          senderHandle: handle,
+          type,
+          body,
+          attachments: attachmentMeta ? [{
+            id: attachmentMeta.id,
+            storageKey: attachmentMeta.storageKey,
+            mimeType: attachmentMeta.mimeType,
+            byteSize: attachmentMeta.byteSize,
+          }] : undefined,
+          createdAt: new Date().toISOString(),
+        };
+        reportMessages.push(message);
+
+        io.to(REPORT_ROOM_ID).emit(SOCKET_EVENTS.MESSAGE_NEW, message);
+        return;
       }
 
       // Chặn gửi nếu phòng đã expired giữa chừng (race với cron cleanup)
@@ -144,6 +172,16 @@ export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSoc
     try {
       if (!socket.guestId || !socket.roomId) return;
 
+      // Special handling for Report Room
+      if (socket.roomId === REPORT_ROOM_ID) {
+        const idx = reportMessages.findIndex((m) => m.id === data.messageId && m.senderGuestId === socket.guestId);
+        if (idx !== -1) {
+          reportMessages[idx] = { ...reportMessages[idx], recalledAt: new Date().toISOString() } as any;
+        }
+        io.to(REPORT_ROOM_ID).emit(SOCKET_EVENTS.MESSAGE_RECALLED, { messageId: data.messageId });
+        return;
+      }
+
       const result = await recallMessageService(data.messageId, socket.guestId);
       if (!result.success) {
         return socket.emit(SOCKET_EVENTS.ERROR, {
@@ -166,6 +204,16 @@ export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSoc
   socket.on(SOCKET_EVENTS.MESSAGE_DELETE, async (data: { messageId: string }) => {
     try {
       if (!socket.guestId || !socket.roomId) return;
+
+      // Special handling for Report Room
+      if (socket.roomId === REPORT_ROOM_ID) {
+        const idx = reportMessages.findIndex((m) => m.id === data.messageId && m.senderGuestId === socket.guestId);
+        if (idx !== -1) {
+          reportMessages.splice(idx, 1);
+        }
+        io.to(REPORT_ROOM_ID).emit(SOCKET_EVENTS.MESSAGE_DELETED, { messageId: data.messageId });
+        return;
+      }
 
       const result = await deleteMessageService(data.messageId, socket.guestId);
       if (!result.success) {

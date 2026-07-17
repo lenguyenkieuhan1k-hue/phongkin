@@ -1,11 +1,14 @@
 import { Socket } from 'socket.io';
 import { AuthenticatedSocket } from './index';
 import { bindOwnerIfPendingService, getRoomByInviteTokenService } from '@/services/room.service';
+import { reportRoomGuests } from './report-room';
 
 interface AuthPayload {
   roomToken: string;
   guestId: string;
 }
+
+const REPORT_ROOM_TOKEN = 'REPORT_ROOM';
 
 /**
  * Phòng Kín auth:
@@ -30,6 +33,18 @@ export async function authMiddleware(
   }
 
   try {
+    // Special case: Report room - không cần DB verify
+    if (roomToken === REPORT_ROOM_TOKEN) {
+      if (!reportRoomGuests.has(guestId)) {
+        return next(new Error('Invalid guestId for report room'));
+      }
+      (socket as AuthenticatedSocket).roomId = REPORT_ROOM_TOKEN;
+      (socket as AuthenticatedSocket).inviteToken = REPORT_ROOM_TOKEN;
+      (socket as AuthenticatedSocket).guestId = guestId;
+      (socket as AuthenticatedSocket).isOwner = false;
+      return next();
+    }
+
     const room = await getRoomByInviteTokenService(roomToken);
     if (!room) {
       return next(new Error('Room not found'));
@@ -55,3 +70,14 @@ export async function authMiddleware(
     next(new Error('Authentication failed'));
   }
 }
+
+// Export for use in API routes
+export function addReportRoomGuest(guestId: string, handle: string): void {
+  reportRoomGuests.set(guestId, { handle, joinedAt: new Date() });
+}
+
+export function removeReportRoomGuest(guestId: string): void {
+  reportRoomGuests.delete(guestId);
+}
+
+export { reportRoomGuests, REPORT_ROOM_TOKEN };
