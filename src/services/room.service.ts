@@ -14,6 +14,7 @@
  */
 
 import prisma from '@/lib/prisma';
+import { deleteObject } from '@/lib/storage';
 import {
   cacheRoom,
   createRoom as createRoomCache,
@@ -226,6 +227,17 @@ export async function getRoomMemberListService(roomId: string) {
 }
 
 export async function expireRoomService(roomId: string): Promise<void> {
+  // Lấy danh sách attachment storageKeys TRƯỚC khi cascade xóa
+  const attachments = await prisma.attachment.findMany({
+    where: { message: { roomId } },
+    select: { storageKey: true },
+  });
+
+  // Xóa file vật lý trên MinIO — bảo đảm quyền riêng tư
+  await Promise.allSettled(
+    attachments.map((a) => deleteObject(a.storageKey).catch(() => {}))
+  );
+
   // Xóa Room → cascade xóa luôn RoomMember, Message, Attachment
   await prisma.room.delete({ where: { id: roomId } }).catch(() => {});
 

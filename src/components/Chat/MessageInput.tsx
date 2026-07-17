@@ -175,10 +175,6 @@ export default function MessageInput({}: MessageInputProps) {
     }
   };
 
-  const handleEmojiSelect = (emoji: string) => {
-    setMessage((p) => p + emoji);
-    textareaRef.current?.focus();
-  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -434,19 +430,6 @@ export default function MessageInput({}: MessageInputProps) {
         )}
 
         <div className="flex items-end gap-3">
-          <button
-            type="button"
-            className="p-2 rounded-lg hover:bg-dark-800 text-gray-500 hover:text-gray-300 transition-colors"
-            onClick={() => {
-              const emojis = ['😀', '😂', '🥰', '😍', '🤔', '👍', '❤️', '🔥', '🎉', '✨'];
-              handleEmojiSelect(emojis[Math.floor(Math.random() * emojis.length)]);
-            }}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-
           <button
             type="button"
             className="p-2 rounded-lg hover:bg-dark-800 text-gray-500 hover:text-gray-300 transition-colors disabled:opacity-50"
