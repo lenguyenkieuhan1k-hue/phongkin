@@ -17,4 +17,6 @@ EXPOSE 8080
 ENV NODE_ENV=production
 ENV PORT=8080
 
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npm start"]
+# For Render: Use Build Command and Start Command in dashboard instead
+# Build: npm ci && npx prisma generate && npm run build
+# Start: npm start
