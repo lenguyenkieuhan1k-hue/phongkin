@@ -31,11 +31,13 @@ export default function PaymentPage() {
         setDuration(data.duration);
         setMaxMembers(data.maxMembers);
         setSepayRef(data.sepayRef);
-        // status có thể chưa có qrContent → gọi lại nếu pending
-        // qrContent thực ra trả về từ POST /api/payment/create, fetch lại bằng cách gọi lại create
+        // Nếu đã EXPIRED hoặc FAILED → redirect
+        if (data.status === 'EXPIRED') {
+          router.replace('/payment/expired');
+        }
       })
       .catch(() => setError('Không tìm thấy thanh toán'));
-  }, [paymentId]);
+  }, [paymentId, router]);
 
   // Lấy QR content (từ POST create, mình cache state khi navigate)
   useEffect(() => {
@@ -48,10 +50,13 @@ export default function PaymentPage() {
       setDuration(data.duration);
       setMaxMembers(data.maxMembers);
       setStatus(data.status);
+      if (data.status === 'EXPIRED') {
+        router.replace('/payment/expired');
+      }
     } else {
       setError('Phiên thanh toán đã hết. Vui lòng tạo lại.');
     }
-  }, [paymentId]);
+  }, [paymentId, router]);
 
   // Polling status mỗi 3s
   useEffect(() => {
@@ -65,7 +70,6 @@ export default function PaymentPage() {
         setStatus(data.status);
         if (data.status === 'SUCCESS') {
           clearInterval(poll);
-          // Lưu inviteToken & roomId → chuyển trang
           sessionStorage.setItem(
             `payment:${paymentId}`,
             JSON.stringify({
@@ -76,6 +80,9 @@ export default function PaymentPage() {
             })
           );
           router.push(`/payment/${paymentId}/success`);
+        } else if (data.status === 'EXPIRED' || data.status === 'FAILED') {
+          clearInterval(poll);
+          router.replace('/payment/expired');
         }
       } catch {}
     }, 3000);
@@ -94,6 +101,7 @@ export default function PaymentPage() {
       if (remaining <= 0) {
         setTimeLeft('00:00');
         setStatus('EXPIRED');
+        router.replace('/payment/expired');
         return;
       }
       const m = Math.floor(remaining / 60);
@@ -103,7 +111,7 @@ export default function PaymentPage() {
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [paymentId, status]);
+  }, [paymentId, status, router]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(sepayRef);

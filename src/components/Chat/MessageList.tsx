@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useMessageStore } from '@/hooks/useStore';
 import MessageBubble from './MessageBubble';
+import TypingIndicator from './TypingIndicator';
 
 interface MessageListProps {
   guestId: string;
@@ -10,6 +11,7 @@ interface MessageListProps {
 
 export default function MessageList({ guestId }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollEndRef = useRef<HTMLDivElement>(null);
   const messages = useMessageStore((s) => s.messages);
   const isAtBottomRef = useRef(true);
 
@@ -18,25 +20,6 @@ export default function MessageList({ guestId }: MessageListProps) {
     return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Smart auto-scroll: chỉ scroll xuống nếu user đang ở cuối
-  const scrollToBottom = useCallback((force = false) => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    if (force || isAtBottomRef.current) {
-      container.scrollTop = container.scrollHeight;
-    }
-  }, []);
-
-  // Auto-scroll khi có tin nhắn mới
-  useEffect(() => {
-    // Debounce scroll - tránh scroll quá nhiều lần
-    const timeoutId = setTimeout(() => {
-      scrollToBottom();
-    }, 50);
-    return () => clearTimeout(timeoutId);
-  }, [messages.length, scrollToBottom]);
-
   // Track scroll position để biết user đang ở đâu
   const handleScroll = useCallback(() => {
     const container = containerRef.current;
@@ -44,7 +27,10 @@ export default function MessageList({ guestId }: MessageListProps) {
 
     const { scrollTop, scrollHeight, clientHeight } = container;
     // User ở cuối nếu scrollTop + clientHeight >= scrollHeight - 100px
-    isAtBottomRef.current = scrollHeight - scrollTop - clientHeight < 100;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
+    if (isAtBottom) {
+      scrollEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, []);
 
   return (
@@ -67,6 +53,8 @@ export default function MessageList({ guestId }: MessageListProps) {
           formatTime={formatTime}
         />
       ))}
+      <TypingIndicator />
+      <div ref={scrollEndRef} />
     </div>
   );
 }

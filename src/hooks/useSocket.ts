@@ -23,6 +23,7 @@ export function useSocket(session: SessionData | null) {
   const removeMessage = useMessageStore((s) => s.removeMessage);
   const setTyping = useMessageStore((s) => s.setTyping);
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimerRef = useRef<Record<string, NodeJS.Timeout>>({});
 
   useEffect(() => {
     if (!session?.roomToken || !session?.guestId) {
@@ -85,6 +86,8 @@ export function useSocket(session: SessionData | null) {
         roomId: data.roomId,
         inviteToken: data.inviteToken,
         guestId: data.myGuestId,
+        maxMembers: data.room.maxMembers,
+        members: data.members,
         expiresAt: data.room.expiresAt,
         status: data.room.status,
       });
@@ -92,14 +95,17 @@ export function useSocket(session: SessionData | null) {
       setMessages(data.messages);
     });
 
-    socket.on(SOCKET_EVENTS.ROOM_MEMBER_JOINED, (data: { guestId: string; memberCount: number }) => {
+    socket.on(SOCKET_EVENTS.ROOM_MEMBER_JOINED, (data: { guestId: string; handle: string; memberCount: number }) => {
       setMemberCount(data.memberCount);
+      const current = useRoomStore.getState().members;
+      if (!current.find((m) => m.guestId === data.guestId)) {
+        useRoomStore.setState({ members: [...current, { guestId: data.guestId, handle: data.handle, isOwner: false }] });
+      }
     });
 
     socket.on(SOCKET_EVENTS.ROOM_MEMBER_LEFT, (data: { guestId: string; memberCount?: number }) => {
-      if (data.memberCount !== undefined) {
-        setMemberCount(data.memberCount);
-      }
+      if (data.memberCount !== undefined) setMemberCount(data.memberCount);
+      useRoomStore.setState({ members: useRoomStore.getState().members.filter((m) => m.guestId !== data.guestId) });
     });
 
     socket.on(SOCKET_EVENTS.ROOM_CLOSED, (data: { roomId: string; reason: string }) => {
@@ -123,7 +129,25 @@ export function useSocket(session: SessionData | null) {
     });
 
     socket.on(SOCKET_EVENTS.TYPING_UPDATE, (data: { roomId: string; guestId: string; isTyping: boolean }) => {
-      // Just rely on server-side presence; we'll filter by myGuestId in component
+      const current = useMessageStore.getState().typingUsers;
+      if (data.isTyping) {
+        if (!current.includes(data.guestId)) {
+          setTyping([...current, data.guestId]);
+        }
+        if (typingTimerRef.current[data.guestId]) {
+          clearTimeout(typingTimerRef.current[data.guestId]);
+        }
+        typingTimerRef.current[data.guestId] = setTimeout(() => {
+          const cur = useMessageStore.getState().typingUsers;
+          setTyping(cur.filter((id) => id !== data.guestId));
+        }, 4000);
+      } else {
+        if (typingTimerRef.current[data.guestId]) {
+          clearTimeout(typingTimerRef.current[data.guestId]);
+          delete typingTimerRef.current[data.guestId];
+        }
+        setTyping(current.filter((id) => id !== data.guestId));
+      }
     });
 
     socket.on(SOCKET_EVENTS.ERROR, (data: { code: string; message: string }) => {

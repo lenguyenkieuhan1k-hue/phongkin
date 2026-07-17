@@ -7,6 +7,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import LoadingScreen from './LoadingScreen';
 import { useSocket } from '@/hooks/useSocket';
+import { useRoomStore } from '@/hooks/useStore';
 
 interface ChatScreenProps {
   inviteToken: string;
@@ -92,6 +93,14 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
       localStorage.setItem(HANDLE_KEY(inviteToken), trimmed);
       setRoom(data.room);
       setGuestId(data.guestId);
+      useRoomStore.getState().setRoom({
+        roomId: data.room.id,
+        inviteToken: data.room.inviteToken,
+        guestId: data.guestId,
+        maxMembers: data.room.maxMembers,
+        expiresAt: data.room.expiresAt,
+        status: data.room.status,
+      });
       setPhase('CHAT');
     } catch {
       setGlobalError('Lỗi mạng. Vui lòng thử lại.');

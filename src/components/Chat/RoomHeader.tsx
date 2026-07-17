@@ -11,7 +11,7 @@ interface RoomHeaderProps {
 export default function RoomHeader({ inviteToken }: RoomHeaderProps) {
   const expiresAt = useRoomStore((s) => s.expiresAt);
   const memberCount = useRoomStore((s) => s.memberCount);
-  const maxMembers = useRoomStore((s) => 0); // We don't store maxMembers in store yet, fallback below
+  const maxMembers = useRoomStore((s) => s.maxMembers);
   const roomStatus = useRoomStore((s) => s.roomStatus);
   const { timeLeft } = useRoomTimer(expiresAt);
 
@@ -40,7 +40,7 @@ export default function RoomHeader({ inviteToken }: RoomHeaderProps) {
               <div className="text-xs text-gray-500 flex items-center gap-2">
                 <span className="inline-flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                  {memberCount} người
+                  {memberCount}/{maxMembers} người
                 </span>
                 <span>·</span>
                 <span>Phòng {roomStatus === 'FULL' ? 'đầy' : 'mở'}</span>

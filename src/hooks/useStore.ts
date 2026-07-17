@@ -7,12 +7,16 @@ interface RoomState {
   inviteToken: string | null;
   guestId: string | null;
   memberCount: number;
+  maxMembers: number;
+  members: Array<{ guestId: string; handle: string; isOwner: boolean }>;
   expiresAt: string | null;
   roomStatus: 'ACTIVE' | 'FULL' | 'EXPIRED' | null;
   setRoom: (info: {
     roomId: string;
     inviteToken: string;
     guestId: string;
+    maxMembers: number;
+    members?: Array<{ guestId: string; handle: string; isOwner: boolean }>;
     expiresAt: string;
     status: 'ACTIVE' | 'FULL' | 'EXPIRED';
   }) => void;
@@ -26,6 +30,8 @@ export const useRoomStore = create<RoomState>((set) => ({
   inviteToken: null,
   guestId: null,
   memberCount: 1,
+  maxMembers: 0,
+  members: [],
   expiresAt: null,
   roomStatus: null,
   setRoom: (info) =>
@@ -33,6 +39,8 @@ export const useRoomStore = create<RoomState>((set) => ({
       currentRoomId: info.roomId,
       inviteToken: info.inviteToken,
       guestId: info.guestId,
+      maxMembers: info.maxMembers,
+      members: info.members ?? [],
       expiresAt: info.expiresAt,
       roomStatus: info.status,
       memberCount: 1,
@@ -45,6 +53,8 @@ export const useRoomStore = create<RoomState>((set) => ({
       inviteToken: null,
       guestId: null,
       memberCount: 0,
+      maxMembers: 0,
+      members: [],
       expiresAt: null,
       roomStatus: null,
     }),
