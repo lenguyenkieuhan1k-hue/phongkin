@@ -114,18 +114,42 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
   // Form nhập biệt danh
   if (phase === 'HANDLE') {
     return (
-      <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
-        <div className="card p-8 max-w-md w-full space-y-5">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Chào mừng vào phòng</h1>
-            <p className="text-gray-400 mt-1 text-sm">
+      <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-accent-950 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Floating hearts background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[10%] left-[15%] text-4xl text-accent-400/20 animate-float" style={{ animationDelay: '0s' }}>♥</div>
+          <div className="absolute top-[20%] right-[20%] text-3xl text-accent-300/15 animate-float" style={{ animationDelay: '1s' }}>♡</div>
+          <div className="absolute top-[60%] left-[10%] text-5xl text-accent-500/10 animate-float" style={{ animationDelay: '2s' }}>♥</div>
+          <div className="absolute top-[70%] right-[15%] text-4xl text-accent-400/20 animate-float" style={{ animationDelay: '3s' }}>♡</div>
+          <div className="absolute top-[40%] left-[5%] text-3xl text-accent-300/15 animate-float" style={{ animationDelay: '4s' }}>♥</div>
+          <div className="absolute top-[85%] left-[25%] text-4xl text-accent-400/10 animate-float" style={{ animationDelay: '5s' }}>♡</div>
+          <div className="absolute top-[15%] right-[10%] text-5xl text-accent-500/15 animate-float" style={{ animationDelay: '2.5s' }}>♥</div>
+          <div className="absolute top-[50%] right-[5%] text-3xl text-accent-300/10 animate-float" style={{ animationDelay: '1.5s' }}>♡</div>
+        </div>
+
+        <div className="card p-8 max-w-md w-full space-y-6 relative z-10 romantic-glow">
+          {/* Heart icon header */}
+          <div className="text-center mb-2">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 shadow-lg shadow-accent-500/30 mb-4">
+              <svg className="w-8 h-8 text-white animate-heart-beat" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold gradient-text">Chào mừng vào phòng</h1>
+            <p className="text-gray-400 mt-2 text-sm">
               Chọn một biệt danh để mọi người nhận ra bạn trong cuộc trò chuyện.
             </p>
           </div>
-          <form onSubmit={submitHandle} className="space-y-4">
+
+          <form onSubmit={submitHandle} className="space-y-5">
             <div>
               <label htmlFor="handle" className="block text-sm font-medium text-gray-300 mb-2">
-                Biệt danh của bạn
+                <span className="inline-flex items-center gap-2">
+                  <svg className="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Biệt danh của bạn
+                </span>
               </label>
               <input
                 id="handle"
@@ -135,7 +159,7 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
                 maxLength={24}
                 autoFocus
                 placeholder="VD: Mèo Mun, An, ..."
-                className="w-full px-4 py-3 rounded-xl bg-dark-800 border border-dark-700 text-white placeholder-gray-500 focus:outline-none focus:border-accent-500"
+                className="w-full px-4 py-3 rounded-xl bg-dark-800/80 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
               />
               <p className="text-xs text-gray-500 mt-1">Tối đa 24 ký tự.</p>
             </div>
@@ -144,7 +168,10 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
                 {handleError}
               </div>
             )}
-            <button type="submit" className="w-full btn btn-primary py-3 rounded-xl font-semibold">
+            <button type="submit" className="w-full btn btn-primary py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
               Vào phòng
             </button>
           </form>
@@ -157,11 +184,11 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
 
   if (phase === 'ERROR') {
     return (
-      <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
-        <div className="card p-8 max-w-md w-full text-center space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-full bg-red-500/20 flex items-center justify-center">
-            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-accent-950 flex items-center justify-center p-4">
+        <div className="card p-8 max-w-md w-full text-center space-y-5 romantic-glow">
+          <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-accent-500/20 to-accent-600/20 flex items-center justify-center">
+            <svg className="w-8 h-8 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </div>
           <h1 className="text-xl font-bold text-white">Không thể vào phòng</h1>
@@ -177,9 +204,19 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
   if (!room || !guestId) return <LoadingScreen />;
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-950">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 relative">
+      {/* Floating hearts background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[5%] left-[10%] text-4xl text-accent-400/10 animate-float" style={{ animationDelay: '0s' }}>♥</div>
+        <div className="absolute top-[15%] right-[15%] text-5xl text-accent-300/8 animate-float" style={{ animationDelay: '1.5s' }}>♡</div>
+        <div className="absolute top-[30%] left-[5%] text-6xl text-accent-500/6 animate-float" style={{ animationDelay: '2s' }}>♥</div>
+        <div className="absolute top-[50%] right-[8%] text-4xl text-accent-400/10 animate-float" style={{ animationDelay: '3s' }}>♡</div>
+        <div className="absolute top-[70%] left-[15%] text-5xl text-accent-300/8 animate-float" style={{ animationDelay: '4s' }}>♥</div>
+        <div className="absolute top-[85%] right-[20%] text-4xl text-accent-400/6 animate-float" style={{ animationDelay: '5s' }}>♡</div>
+      </div>
+
       <RoomHeader inviteToken={inviteToken} />
-      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full relative z-10">
         <div className="flex-1 overflow-hidden">
           <MessageList guestId={guestId} />
         </div>

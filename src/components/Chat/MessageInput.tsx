@@ -352,20 +352,25 @@ export default function MessageInput({}: MessageInputProps) {
 
   return (
     <div
-      className="border-t border-dark-800 bg-dark-900 p-4 relative"
+      className="border-t border-accent-400/20 bg-gradient-to-t from-dark-900 to-dark-950 p-4 relative"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       {isDragging && (
-        <div className="absolute inset-0 z-10 bg-accent-500/20 border-2 border-dashed border-accent-500 rounded-lg flex items-center justify-center pointer-events-none">
-          <p className="text-accent-300 font-medium">Thả file để đính kèm</p>
+        <div className="absolute inset-0 z-10 bg-accent-500/20 border-2 border-dashed border-accent-400 rounded-lg flex items-center justify-center pointer-events-none">
+          <p className="text-accent-300 font-medium flex items-center gap-2">
+            <svg className="w-5 h-5 animate-heart-beat" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            Thả file để đính kèm ♥
+          </p>
         </div>
       )}
 
       <div className="max-w-4xl mx-auto space-y-3">
         {pendingAttachment && pendingAttachment.type !== 'VOICE' && (
-          <div className="bg-dark-800 border border-dark-700 rounded-xl p-3 flex items-start gap-3">
+          <div className="bg-gradient-to-br from-dark-700 to-dark-800 border border-accent-400/20 rounded-xl p-3 flex items-start gap-3 shadow-lg shadow-accent-500/10">
             <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-dark-900 flex items-center justify-center">
               {pendingAttachment.type === 'IMAGE' ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
@@ -373,20 +378,20 @@ export default function MessageInput({}: MessageInputProps) {
               ) : pendingAttachment.type === 'VIDEO' ? (
                 <video src={pendingAttachment.url} className="w-full h-full object-cover" muted />
               ) : (
-                <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-7 h-7 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
               )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{pendingAttachment.filename}</p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-accent-300">
                 {pendingAttachment.type} · {(pendingAttachment.byteSize / 1024).toFixed(1)} KB
               </p>
             </div>
             <button
               onClick={() => setPendingAttachment(null)}
-              className="p-1 rounded-lg hover:bg-dark-700 text-gray-400 hover:text-white"
+              className="p-1 rounded-lg hover:bg-accent-500/20 text-gray-400 hover:text-accent-400"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -396,15 +401,15 @@ export default function MessageInput({}: MessageInputProps) {
         )}
 
         {pendingAttachment && pendingAttachment.type === 'VOICE' && (
-          <div className="bg-dark-800 border border-dark-700 rounded-xl p-3 flex items-start gap-3">
-            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-accent-600/30 flex items-center justify-center">
-              <svg className="w-6 h-6 text-accent-400" fill="currentColor" viewBox="0 0 24 24">
+          <div className="bg-gradient-to-br from-dark-700 to-dark-800 border border-accent-400/20 rounded-xl p-3 flex items-start gap-3 shadow-lg shadow-accent-500/10">
+            <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-to-br from-accent-500/30 to-accent-600/30 flex items-center justify-center">
+              <svg className="w-6 h-6 text-accent-300 animate-heart-beat" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white">Tin nhắn thoại</p>
-              <p className="text-xs text-gray-400">
+              <p className="text-sm font-medium text-white">Tin nhắn thoại ♥</p>
+              <p className="text-xs text-accent-300">
                 {pendingAttachment.durationSec
                   ? `${Math.floor(pendingAttachment.durationSec / 60)}:${(pendingAttachment.durationSec % 60).toString().padStart(2, '0')}`
                   : '0:00'}
@@ -413,7 +418,7 @@ export default function MessageInput({}: MessageInputProps) {
             </div>
             <button
               onClick={() => setPendingAttachment(null)}
-              className="p-1 rounded-lg hover:bg-dark-700 text-gray-400 hover:text-white"
+              className="p-1 rounded-lg hover:bg-accent-500/20 text-gray-400 hover:text-accent-400"
               title="Xóa"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -432,12 +437,12 @@ export default function MessageInput({}: MessageInputProps) {
         <div className="flex items-end gap-3">
           <button
             type="button"
-            className="p-2 rounded-lg hover:bg-dark-800 text-gray-500 hover:text-gray-300 transition-colors disabled:opacity-50"
+            className="p-2 rounded-lg hover:bg-accent-500/20 text-gray-500 hover:text-accent-400 transition-all duration-200 disabled:opacity-50"
             disabled={isUploading}
             onClick={() => fileInputRef.current?.click()}
           >
             {isUploading ? (
-              <svg className="w-6 h-6 animate-spin" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 animate-spin text-accent-400" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
@@ -459,15 +464,15 @@ export default function MessageInput({}: MessageInputProps) {
           <div className="flex-1 relative">
             {isRecording ? (
               <div
-                className="w-full bg-dark-800 border border-red-500/60 rounded-xl px-4 py-3 flex items-center gap-3 select-none"
+                className="w-full bg-gradient-to-br from-dark-700 to-dark-800 border border-accent-400/30 rounded-xl px-4 py-3 flex items-center gap-3 select-none shadow-lg shadow-accent-500/10"
                 onPointerMove={handleRecordPointerMove}
                 onPointerUp={() => stopRecording(dragStateRef.current.cancelled)}
                 onPointerLeave={() => dragStateRef.current.active && stopRecording(dragStateRef.current.cancelled)}
                 onPointerCancel={() => stopRecording(true)}
               >
                 <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-accent-500" />
                 </span>
                 <span className="text-white font-mono text-sm">
                   {Math.floor(recordDuration / 60).toString()}:{Math.floor(recordDuration % 60).toString().padStart(2, '0')}
@@ -479,13 +484,13 @@ export default function MessageInput({}: MessageInputProps) {
                     return (
                       <div
                         key={i}
-                        className={`flex-1 rounded-full ${cancelHint === 'cancel' ? 'bg-red-500' : 'bg-red-400'}`}
+                        className={`flex-1 rounded-full ${cancelHint === 'cancel' ? 'bg-accent-500' : 'bg-accent-400'}`}
                         style={{ height: `${h}%`, minHeight: '4px' }}
                       />
                     );
                   })}
                 </div>
-                <span className={`text-xs font-medium ${cancelHint === 'cancel' ? 'text-red-400' : 'text-gray-400'}`}>
+                <span className={`text-xs font-medium ${cancelHint === 'cancel' ? 'text-accent-400' : 'text-gray-400'}`}>
                   {cancelHint === 'cancel' ? '↩ Thả để hủy' : '◀ Trượt để hủy'}
                 </span>
               </div>
@@ -495,9 +500,9 @@ export default function MessageInput({}: MessageInputProps) {
                 value={message}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
-                placeholder={pendingAttachment ? 'Thêm chú thích...' : 'Nhập tin nhắn...'}
+                placeholder={pendingAttachment ? 'Thêm chú thích...' : 'Nhắn lời yêu thương...'}
                 rows={1}
-                className="w-full bg-dark-800 border border-dark-700 rounded-xl px-4 py-3 pr-12 text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
+                className="w-full bg-gradient-to-br from-dark-700/80 to-dark-800/80 border border-dark-600 rounded-xl px-4 py-3 pr-12 text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-transparent transition-all duration-200"
                 style={{ minHeight: '48px', maxHeight: '150px' }}
               />
             )}
@@ -507,7 +512,7 @@ export default function MessageInput({}: MessageInputProps) {
             <button
               onClick={handleSend}
               disabled={isSending || isUploading}
-              className="p-3 rounded-xl bg-accent-600 text-white hover:bg-accent-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-3 rounded-xl bg-gradient-to-r from-accent-500 to-accent-600 text-white hover:from-accent-400 hover:to-accent-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg shadow-accent-500/30"
             >
               {isSending ? (
                 <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24">
@@ -516,7 +521,7 @@ export default function MessageInput({}: MessageInputProps) {
                 </svg>
               ) : (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               )}
             </button>
@@ -533,7 +538,7 @@ export default function MessageInput({}: MessageInputProps) {
               }}
               onTouchStart={(e) => { e.preventDefault(); }}
               title="Giữ để ghi âm"
-              className="p-3 rounded-xl bg-dark-800 border border-dark-700 text-gray-300 hover:bg-dark-700 hover:text-white transition-colors active:bg-red-600 active:border-red-500 active:text-white select-none touch-none"
+              className="p-3 rounded-xl bg-gradient-to-br from-dark-700 to-dark-800 border border-accent-400/30 text-gray-300 hover:from-accent-500/20 hover:to-dark-700 hover:text-accent-300 transition-all duration-200 active:scale-95 select-none touch-none shadow-lg shadow-accent-500/10"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />

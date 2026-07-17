@@ -19,13 +19,13 @@ export default function TypingIndicator() {
     : `${others.length} người đang nhập...`;
 
   return (
-    <div className="px-4 py-1.5 flex items-center gap-1.5 text-xs text-gray-500">
-      <div className="flex gap-0.5">
-        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+    <div className="px-4 py-1.5 flex items-center gap-2 text-xs text-accent-400/70">
+      <div className="flex gap-1">
+        <span className="w-1.5 h-1.5 bg-gradient-to-r from-accent-400 to-accent-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+        <span className="w-1.5 h-1.5 bg-gradient-to-r from-accent-400 to-accent-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+        <span className="w-1.5 h-1.5 bg-gradient-to-r from-accent-400 to-accent-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
       </div>
-      <span className="animate-pulse">{label}</span>
+      <span className="animate-pulse">{label} ♥</span>
     </div>
   );
 }
