@@ -9,7 +9,7 @@ import {
   leaveRoomService,
 } from '@/services/room.service';
 import { reportMessages } from '@/lib/report-messages';
-import { reportRoomHandles, REPORT_ROOM_ID } from '../report-room';
+import { REPORT_ROOM_ID } from '../report-room';
 
 // In-memory: socketId -> guestId (cho việc broadcast presence chính xác)
 const roomSockets = new Map<string, Map<string, string>>(); // roomId -> { socketId: guestId }
@@ -39,8 +39,8 @@ export function handleChatEvents(io: SocketIOServer, socket: AuthenticatedSocket
         const sockets = getRoomSocketMap(REPORT_ROOM_ID);
         sockets.set(socket.id, socket.guestId);
 
-        // Get handle from auth middleware
-        const handle = reportRoomHandles.get(socket.guestId) || 'Unknown';
+        // Get handle from socket (set during auth)
+        const handle = socket.handle || 'Unknown';
 
         // Return messages from in-memory store
         socket.emit(SOCKET_EVENTS.ROOM_JOINED, {
@@ -67,7 +67,7 @@ export function handleChatEvents(io: SocketIOServer, socket: AuthenticatedSocket
           memberCount: sockets.size,
           members: Array.from(sockets.values()).map((gid) => ({
             guestId: gid,
-            handle: reportRoomHandles.get(gid) || 'Unknown',
+            handle: 'User', // Simplified - no per-user handle in memory
             isOwner: false,
           })),
           myGuestId: socket.guestId,
@@ -158,11 +158,6 @@ export function handleChatEvents(io: SocketIOServer, socket: AuthenticatedSocket
       const sockets = getRoomSocketMap(socket.roomId);
       sockets.delete(socket.id);
 
-      // Remove from report room handles if applicable
-      if (socket.roomId === REPORT_ROOM_ID) {
-        reportRoomHandles.delete(socket.guestId);
-      }
-
       await leaveRoomService(socket.roomId, socket.guestId);
       socket.emit(SOCKET_EVENTS.ROOM_LEFT, { roomId: socket.roomId });
       socket.to(socket.roomId).emit(SOCKET_EVENTS.ROOM_MEMBER_LEFT, {
@@ -182,11 +177,6 @@ export function handleChatEvents(io: SocketIOServer, socket: AuthenticatedSocket
       const sockets = getRoomSocketMap(socket.roomId);
       if (sockets.has(socket.id)) {
         sockets.delete(socket.id);
-
-        // Remove from report room handles if applicable
-        if (socket.roomId === REPORT_ROOM_ID) {
-          reportRoomHandles.delete(socket.guestId);
-        }
 
         socket.to(socket.roomId).emit(SOCKET_EVENTS.ROOM_MEMBER_LEFT, {
           guestId: socket.guestId,

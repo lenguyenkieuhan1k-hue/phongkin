@@ -6,7 +6,7 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { getAttachment } from '@/lib/storage-local';
 import prisma from '@/lib/prisma';
 import { reportMessages } from '@/lib/report-messages';
-import { reportRoomHandles, REPORT_ROOM_ID } from '../report-room';
+import { REPORT_ROOM_ID } from '../report-room';
 import { v4 as uuidv4 } from 'uuid';
 
 const typingUsers = new Map<string, Map<string, string>>(); // roomId -> { socketId: guestId }
@@ -51,7 +51,7 @@ export function handleMessageEvents(io: SocketIOServer, socket: AuthenticatedSoc
 
       // Special handling for Report Room (in-memory, no DB)
       if (socket.roomId === REPORT_ROOM_ID) {
-        const handle = reportRoomHandles.get(socket.guestId) || 'Unknown';
+        const handle = socket.handle || 'Unknown';
         const messageId = uuidv4();
         const message = {
           id: messageId,

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
-import { addReportRoomGuest } from '@/socket/auth.middleware';
-import { reportMessages } from '@/lib/report-messages';
+import { createReportRoomToken } from '@/socket/auth.middleware';
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,18 +14,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Biệt danh phải từ 1-24 ký tự.' }, { status: 400 });
     }
 
-    const guestId = uuidv4();
+    // Create a signed token containing guestId and handle
+    // This token is self-contained and verifiable by the socket server
+    const token = createReportRoomToken(trimmed, trimmed);
 
-    // Add to auth middleware's guest list
-    addReportRoomGuest(guestId, trimmed);
-
-    // Create expiration (1 year from now)
+    // Create expiration (24 hours from now)
     const expiresAt = new Date();
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    expiresAt.setHours(expiresAt.getHours() + 24);
 
     return NextResponse.json({
       success: true,
-      guestId,
+      guestId: token, // The token IS the guestId for report room
       roomId: 'REPORT_ROOM',
       inviteToken: 'REPORT_ROOM',
       expiresAt: expiresAt.toISOString(),

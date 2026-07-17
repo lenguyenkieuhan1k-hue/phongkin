@@ -71,4 +71,5 @@ export interface AuthenticatedSocket extends Socket {
   guestId?: string;
   inviteToken?: string;
   isOwner?: boolean;
+  handle?: string;
 }
