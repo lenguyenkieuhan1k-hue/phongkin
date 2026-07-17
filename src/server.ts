@@ -17,12 +17,12 @@ const securityHeaders = {
   'X-Frame-Options': 'DENY',
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Permissions-Policy': 'camera=(self), microphone=(self), geolocation=()',
 };
 
 const cspHeader = dev
   ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://qr.sepay.vn; media-src 'self' data: blob:; connect-src 'self' ws: wss: https://qr.sepay.vn https://*.onrender.com https://phongkin.pro; frame-src 'none'; object-src 'none'"
-  : "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://qr.sepay.vn; media-src 'self' data: blob:; connect-src 'self' ws: wss: https://qr.sepay.vn https://*.onrender.com https://phongkin.pro; frame-src 'none'; object-src 'none'";
+  : "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://qr.sepay.vn; media-src 'self' data: blob: https://phongkin.pro; connect-src 'self' ws: wss: https://qr.sepay.vn https://*.onrender.com https://phongkin.pro; frame-src 'none'; object-src 'none'";
 
 const hstsHeader = dev
   ? ''
