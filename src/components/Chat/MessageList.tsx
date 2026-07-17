@@ -15,6 +15,7 @@ export default function MessageList({ guestId }: MessageListProps) {
   const messages = useMessageStore((s) => s.messages);
   const typingUsers = useMessageStore((s) => s.typingUsers);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const isNearBottomRef = useRef(true);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
 
   const formatTime = (dateString: string) => {
@@ -22,16 +23,15 @@ export default function MessageList({ guestId }: MessageListProps) {
     return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Auto-scroll to bottom when new messages arrive (if user is at bottom or not scrolling)
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     // Clear any existing timeout
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // Only auto-scroll if user is not actively scrolling
-    if (!isUserScrolling && scrollEndRef.current) {
-      // Small delay to ensure DOM is updated
+    // Auto-scroll if user is near bottom OR not actively scrolling
+    if (isNearBottomRef.current || !isUserScrolling) {
       scrollTimeoutRef.current = setTimeout(() => {
         scrollEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
       }, 50);
@@ -62,9 +62,12 @@ export default function MessageList({ guestId }: MessageListProps) {
       setIsUserScrolling(false);
     }, 150);
 
-    // If user scrolls to bottom, keep them there
+    // Check if user is near bottom
     const { scrollTop, scrollHeight, clientHeight } = container;
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    isNearBottomRef.current = distanceFromBottom < 150;
+
+    // If user scrolls to bottom, keep them there
     if (distanceFromBottom < 100) {
       scrollEndRef.current?.scrollIntoView({ behavior: 'auto' });
     }
