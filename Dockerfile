@@ -17,6 +17,5 @@ EXPOSE 8080
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# For Render: Use Build Command and Start Command in dashboard instead
-# Build: npm ci && npx prisma generate && npm run build
-# Start: npm start
+# Keep container running
+CMD ["npm", "start"]
