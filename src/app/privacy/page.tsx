@@ -11,12 +11,12 @@ export default function PrivacyPage() {
       <header className="border-b border-bg-800">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-600 to-accent-800 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-bg-600 to-bg-800 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <Link href="/" className="font-semibold text-white hover:text-accent-400 transition-colors">
+            <Link href="/" className="font-semibold text-white hover:text-bg-400 transition-colors">
               Phòng Kín
             </Link>
           </div>
@@ -106,8 +106,8 @@ export default function PrivacyPage() {
                 <li>Link mời tham gia phòng</li>
                 <li>Metadata của phòng (thời gian tạo, thời gian kết thúc)</li>
               </ul>
-              <div className="bg-accent-600/10 border border-accent-600/30 rounded-lg p-4 mt-4">
-                <p className="text-sm text-accent-300">
+              <div className="bg-bg-600/10 border border-bg-600/30 rounded-lg p-4 mt-4">
+                <p className="text-sm text-bg-300">
                   <span className="font-semibold">Lưu ý quan trọng:</span> Sau khi phòng kết thúc, dữ liệu không thể khôi phục. 
                   Hãy đảm bảo bạn đã lưu trữ những thông tin cần thiết trước khi phòng hết hạn.
                 </p>
@@ -208,7 +208,7 @@ export default function PrivacyPage() {
         </div>
 
         <div className="mt-8 text-center">
-          <Link href="/terms" className="text-accent-400 hover:text-accent-300 text-sm">
+          <Link href="/terms" className="text-bg-400 hover:text-bg-300 text-sm">
             ← Xem Điều khoản sử dụng
           </Link>
         </div>

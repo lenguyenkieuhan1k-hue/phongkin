@@ -142,7 +142,7 @@ export default function PaymentPage() {
           )}
 
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-accent-400">{formatVND(amount)}</div>
+            <div className="text-3xl font-bold text-bg-300">{formatVND(amount)}</div>
             <div className="text-sm text-gray-400">
               Phòng {duration === 30 ? '30 phút' : duration === 60 ? '1 giờ' : '2 giờ'} · Tối đa{' '}
               {maxMembers} người

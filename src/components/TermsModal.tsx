@@ -62,7 +62,7 @@ export default function TermsModal({ isOpen, type, onClose, onAgree }: TermsModa
         {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-bg-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-600 to-accent-800 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-bg-600 to-bg-800 flex items-center justify-center">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -151,7 +151,7 @@ export default function TermsModal({ isOpen, type, onClose, onAgree }: TermsModa
                     href="/terms"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-accent-400 hover:text-accent-300 underline"
+                    className="text-bg-400 hover:text-bg-300 underline"
                     onClick={(e) => {
                       e.preventDefault();
                       window.open('/terms', '_blank');
@@ -212,7 +212,7 @@ export default function TermsModal({ isOpen, type, onClose, onAgree }: TermsModa
                     href="/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-accent-400 hover:text-accent-300 underline"
+                    className="text-bg-400 hover:text-bg-300 underline"
                     onClick={(e) => {
                       e.preventDefault();
                       window.open('/privacy', '_blank');
@@ -238,7 +238,7 @@ export default function TermsModal({ isOpen, type, onClose, onAgree }: TermsModa
               <div className="flex gap-3">
                 <button
                   onClick={() => window.open(isTerms ? '/terms' : '/privacy', '_blank')}
-                  className="text-xs text-accent-400 hover:text-accent-300 underline"
+                  className="text-xs text-bg-400 hover:text-bg-300 underline"
                 >
                   Xem trang đầy đủ
                 </button>

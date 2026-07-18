@@ -105,10 +105,10 @@ export default function ReportPage() {
   // Password screen
   if (phase === 'PASSWORD') {
     return (
-      <div className="min-h-dvh bg-gradient-to-br from-bg-950 via-bg-900 to-accent-950 flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-gradient-to-br from-bg-950 via-bg-900 to-bg-950 flex items-center justify-center p-4">
         <div className="card p-8 max-w-md w-full space-y-6 romantic-glow">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 shadow-lg shadow-accent-500/30 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-bg-400 to-bg-600 shadow-lg shadow-bg-500/30 mb-4">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
@@ -134,7 +134,7 @@ export default function ReportPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoFocus
                 placeholder="Nhập mật khẩu..."
-                className="w-full px-4 py-3 text-base rounded-xl bg-bg-800/80 border border-bg-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
+                className="w-full px-4 py-3 text-base rounded-xl bg-bg-800/80 border border-bg-600 text-white placeholder-gray-500 focus:outline-none focus:border-bg-400 focus:ring-2 focus:ring-bg-400/20 transition-all duration-200"
               />
             </div>
             {passwordError && (
@@ -161,10 +161,10 @@ export default function ReportPage() {
   // Handle screen
   if (phase === 'HANDLE') {
     return (
-      <div className="min-h-dvh bg-gradient-to-br from-bg-950 via-bg-900 to-accent-950 flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-gradient-to-br from-bg-950 via-bg-900 to-bg-950 flex items-center justify-center p-4">
         <div className="card p-8 max-w-md w-full space-y-6 romantic-glow">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 shadow-lg shadow-accent-500/30 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-bg-400 to-bg-600 shadow-lg shadow-bg-500/30 mb-4">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -197,7 +197,7 @@ export default function ReportPage() {
                 maxLength={24}
                 autoFocus
                 placeholder="VD: Nhân viên A..."
-                className="w-full px-4 py-3 text-base rounded-xl bg-bg-800/80 border border-bg-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
+                className="w-full px-4 py-3 text-base rounded-xl bg-bg-800/80 border border-bg-600 text-white placeholder-gray-500 focus:outline-none focus:border-bg-400 focus:ring-2 focus:ring-bg-400/20 transition-all duration-200"
               />
               <p className="text-xs text-gray-500 mt-1">Tối đa 24 ký tự.</p>
             </div>
@@ -235,7 +235,7 @@ export default function ReportPage() {
         {/* Header */}
         <header className="glass px-4 py-3 flex items-center justify-between relative z-20">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-bg-400 to-bg-600 flex items-center justify-center">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>

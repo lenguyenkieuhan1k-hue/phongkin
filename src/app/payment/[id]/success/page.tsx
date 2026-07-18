@@ -63,7 +63,7 @@ export default function PaymentSuccessPage() {
             <>
               <div className="bg-bg-900 rounded-lg p-4 text-left">
                 <div className="text-xs text-gray-500 mb-2">Link mời tham gia phòng</div>
-                <div className="font-mono text-sm text-accent-400 break-all">{inviteUrl}</div>
+                <div className="font-mono text-sm text-bg-300 break-all">{inviteUrl}</div>
               </div>
 
               <button onClick={handleCopy} className="btn btn-secondary w-full">
@@ -80,7 +80,7 @@ export default function PaymentSuccessPage() {
             </>
           ) : (
             <div className="text-gray-400">
-              <div className="w-6 h-6 mx-auto border-2 border-accent-500 border-t-transparent rounded-full animate-spin mb-2" />
+              <div className="w-6 h-6 mx-auto border-2 border-bg-500 border-t-transparent rounded-full animate-spin mb-2" />
               Đang tạo phòng...
             </div>
           )}

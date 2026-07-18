@@ -136,7 +136,7 @@ export default function CreatePage() {
                   onClick={() => setDuration(d)}
                   className={`p-4 rounded-xl border-2 transition-all ${
                     duration === d
-                      ? 'border-accent-500 bg-accent-600/10 text-white'
+                      ? 'border-bg-500 bg-bg-600/10 text-white'
                       : 'border-bg-700 hover:border-bg-600 text-gray-300'
                   }`}
                 >
@@ -158,7 +158,7 @@ export default function CreatePage() {
                   onClick={() => setMaxMembers(m)}
                   className={`p-4 rounded-xl border-2 transition-all ${
                     maxMembers === m
-                      ? 'border-accent-500 bg-accent-600/10 text-white'
+                      ? 'border-bg-500 bg-bg-600/10 text-white'
                       : 'border-bg-700 hover:border-bg-600 text-gray-300'
                   }`}
                 >
@@ -172,7 +172,7 @@ export default function CreatePage() {
           <div className="pt-4 border-t border-bg-700">
             <div className="flex items-baseline justify-between">
               <span className="text-gray-400">Tổng thanh toán</span>
-              <span className="text-3xl font-bold text-accent-400">{formatVND(price)}</span>
+              <span className="text-3xl font-bold text-bg-400">{formatVND(price)}</span>
             </div>
             <p className="text-xs text-gray-500 mt-2">
               Phòng tự động đóng sau {DURATION_LABELS[duration]}. Toàn bộ dữ liệu sẽ được xóa.
@@ -195,14 +195,14 @@ export default function CreatePage() {
                     setAgreedAt(null);
                   }
                 }}
-                className="mt-1 w-5 h-5 rounded border-bg-600 bg-bg-800 text-accent-600 focus:ring-accent-500 focus:ring-offset-bg-900"
+                className="mt-1 w-5 h-5 rounded border-bg-600 bg-bg-800 text-bg-600 focus:ring-bg-500 focus:ring-offset-bg-900"
               />
               <label htmlFor="agree-terms" className="text-sm text-gray-300 leading-relaxed">
                 Tôi đã đọc, hiểu và đồng ý với{' '}
                 <button
                   type="button"
                   onClick={() => openTermsModal('terms')}
-                  className="text-accent-400 hover:text-accent-300 underline underline-offset-2"
+                  className="text-bg-400 hover:text-bg-300 underline underline-offset-2"
                 >
                   Điều khoản sử dụng
                 </button>{' '}
@@ -210,7 +210,7 @@ export default function CreatePage() {
                 <button
                   type="button"
                   onClick={() => openTermsModal('privacy')}
-                  className="text-accent-400 hover:text-accent-300 underline underline-offset-2"
+                  className="text-bg-400 hover:text-bg-300 underline underline-offset-2"
                 >
                   Chính sách quyền riêng tư
                 </button>{' '}

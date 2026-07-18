@@ -77,7 +77,7 @@ export default function LandingPage() {
       <section className="max-w-4xl mx-auto px-4 py-20 text-center">
         <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight mb-4">
           Họp ở đây,{' '}
-          <span className="bg-gradient-to-r from-accent-300 to-accent-500 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-bg-300 to-bg-500 bg-clip-text text-transparent">
             an toàn ở đây
           </span>
         </h1>
@@ -87,7 +87,7 @@ export default function LandingPage() {
         </p>
         <Link
           href="/create"
-          className="inline-flex items-center gap-2 btn btn-primary text-lg py-4 px-8 rounded-xl shadow-lg shadow-accent-600/25 hover:shadow-accent-500/30 transition-all"
+          className="inline-flex items-center gap-2 btn btn-primary text-lg py-4 px-8 rounded-xl shadow-lg shadow-bg-600/25 hover:shadow-bg-500/30 transition-all"
         >
           Tạo phòng ngay
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,7 +101,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {FEATURES.map((f, i) => (
             <div key={i} className="card p-6 space-y-3">
-              <div className="w-10 h-10 rounded-lg bg-accent-600/20 text-accent-400 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-bg-500/20 text-bg-300 flex items-center justify-center">
                 {f.icon}
               </div>
               <h3 className="font-semibold text-white">{f.title}</h3>
@@ -144,7 +144,7 @@ export default function LandingPage() {
                   {MEMBER_LIMITS.map((m) => (
                     <td
                       key={m}
-                      className="text-center p-3 border-b border-bg-800 text-accent-400 font-semibold"
+                      className="text-center p-3 border-b border-bg-800 text-bg-300 font-semibold"
                     >
                       {formatVND(PRICING[`${d}_${m}` as keyof typeof PRICING])}
                     </td>
