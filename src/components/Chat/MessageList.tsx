@@ -9,6 +9,11 @@ interface MessageListProps {
   guestId: string;
 }
 
+function formatTime(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+}
+
 export default function MessageList({ guestId }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollEndRef = useRef<HTMLDivElement>(null);
@@ -17,11 +22,6 @@ export default function MessageList({ guestId }: MessageListProps) {
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const isNearBottomRef = useRef(true);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-  };
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-dark-950">
+    <div className="min-h-dvh bg-dark-950">
       {/* Header */}
       <header className="border-b border-dark-800">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">

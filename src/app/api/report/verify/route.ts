@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createReportRoomToken } from '@/socket/auth.middleware';
 
+const REPORT_PASSWORD = process.env.REPORT_ROOM_PASSWORD || 'darktalk2026';
+
 export async function POST(req: NextRequest) {
   try {
-    const { handle } = await req.json();
+    const { password, handle } = await req.json();
+
+    if (!password || typeof password !== 'string') {
+      return NextResponse.json({ error: 'Mật khẩu không hợp lệ.' }, { status: 400 });
+    }
+
+    if (password !== REPORT_PASSWORD) {
+      return NextResponse.json({ error: 'Mật khẩu không đúng.' }, { status: 401 });
+    }
 
     if (!handle || typeof handle !== 'string') {
       return NextResponse.json({ error: 'Biệt danh không hợp lệ.' }, { status: 400 });
@@ -14,17 +24,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Biệt danh phải từ 1-24 ký tự.' }, { status: 400 });
     }
 
-    // Create a signed token containing guestId and handle
-    // This token is self-contained and verifiable by the socket server
     const token = createReportRoomToken(trimmed, trimmed);
 
-    // Create expiration (24 hours from now)
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24);
 
     return NextResponse.json({
       success: true,
-      guestId: token, // The token IS the guestId for report room
+      guestId: token,
       roomId: 'REPORT_ROOM',
       inviteToken: 'REPORT_ROOM',
       expiresAt: expiresAt.toISOString(),

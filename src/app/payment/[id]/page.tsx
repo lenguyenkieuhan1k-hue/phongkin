@@ -120,7 +120,7 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-950 py-10">
+    <div className="min-h-dvh bg-dark-950 py-10">
       <div className="max-w-md mx-auto px-4">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-white">Quét QR để thanh toán</h1>

@@ -2,7 +2,7 @@
 
 export default function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-dvh flex items-center justify-center">
       <div className="text-center space-y-4">
         <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-accent-600 to-accent-800 flex items-center justify-center animate-pulse">
           <svg

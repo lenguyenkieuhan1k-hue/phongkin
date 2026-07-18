@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import RoomHeader from './RoomHeader';
 import MessageList from './MessageList';
@@ -108,8 +108,12 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
     }
   };
 
-  // Khi có guestId → connect socket
-  useSocket(guestId && phase === 'CHAT' ? { roomToken: inviteToken, guestId } : null);
+  // Memoize session object to avoid socket reconnect on every render
+  const socketSession = useMemo(
+    () => (guestId && phase === 'CHAT' ? { roomToken: inviteToken, guestId } : null),
+    [inviteToken, guestId, phase]
+  );
+  useSocket(socketSession);
 
   // Form nhập biệt danh
   if (phase === 'HANDLE') {
@@ -154,12 +158,15 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
               <input
                 id="handle"
                 type="text"
+                inputMode="text"
+                autoComplete="off"
+                enterKeyHint="go"
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
                 maxLength={24}
                 autoFocus
                 placeholder="VD: Mèo Mun, An, ..."
-                className="w-full px-4 py-3 rounded-xl bg-dark-800/80 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
+                className="w-full px-4 py-3 text-base rounded-xl bg-dark-800/80 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
               />
               <p className="text-xs text-gray-500 mt-1">Tối đa 24 ký tự.</p>
             </div>
@@ -184,7 +191,7 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
 
   if (phase === 'ERROR') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-accent-950 flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-gradient-to-br from-dark-950 via-dark-900 to-accent-950 flex items-center justify-center p-4">
         <div className="card p-8 max-w-md w-full text-center space-y-5 romantic-glow">
           <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-accent-500/20 to-accent-600/20 flex items-center justify-center">
             <svg className="w-8 h-8 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

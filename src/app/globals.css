@@ -5,13 +5,29 @@
 @layer base {
   * {
     border-color: theme('colors.dark.700');
+    -webkit-tap-highlight-color: rgba(244, 63, 94, 0.15);
+  }
+
+  button, a, [role="button"] {
+    touch-action: manipulation;
   }
 
   body {
     @apply bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800 text-gray-100;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background-attachment: fixed;
-    background-size: cover;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    body {
+      background-attachment: fixed;
+      background-size: cover;
+    }
+  }
+
+  input, textarea, select {
+    font-size: 16px;
   }
 
   ::-webkit-scrollbar {

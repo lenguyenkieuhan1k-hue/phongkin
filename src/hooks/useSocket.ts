@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import { useRoomStore, useMessageStore } from './useStore';
 import { SOCKET_EVENTS } from '@/socket/events';
+import { useToast } from '@/components/Toast';
 
 let socket: Socket | null = null;
 
@@ -22,6 +24,8 @@ export function useSocket(session: SessionData | null) {
   const updateMessage = useMessageStore((s) => s.updateMessage);
   const removeMessage = useMessageStore((s) => s.removeMessage);
   const setTyping = useMessageStore((s) => s.setTyping);
+  const router = useRouter();
+  const toast = useToast();
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
   const typingTimerRef = useRef<Record<string, NodeJS.Timeout>>({});
 
@@ -111,9 +115,9 @@ export function useSocket(session: SessionData | null) {
     socket.on(SOCKET_EVENTS.ROOM_CLOSED, (data: { roomId: string; reason: string }) => {
       console.log('[useSocket] room closed:', data);
       setRoomStatus('EXPIRED');
-      alert('Phòng đã đóng. Tất cả dữ liệu sẽ được xóa.');
+      toast('Phòng đã đóng. Dữ liệu sẽ được xóa.', 'info');
       clearRoom();
-      window.location.href = '/';
+      router.replace('/');
     });
 
     socket.on(SOCKET_EVENTS.MESSAGE_NEW, (message: any) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import LoadingScreen from '@/components/Chat/LoadingScreen';
 import { useSocket } from '@/hooks/useSocket';
@@ -8,8 +8,8 @@ import { useRoomStore } from '@/hooks/useStore';
 import MessageList from '@/components/Chat/MessageList';
 import MessageInput from '@/components/Chat/MessageInput';
 
-const REPORT_PASSWORD = 'darktalk2026';
 const PASSWORD_KEY = 'dr:report:pwd';
+const REPORT_DUMMY_PWD = 'verified'; // Marker - real password checked server-side
 
 export default function ReportPage() {
   const router = useRouter();
@@ -21,13 +21,9 @@ export default function ReportPage() {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [guestId, setGuestId] = useState<string | null>(null);
 
-  const room = useRoomStore((s) => s.currentRoomId);
-  const roomStatus = useRoomStore((s) => s.roomStatus);
-
   // Load saved session
   useEffect(() => {
-    const savedPwd = localStorage.getItem(PASSWORD_KEY);
-    if (savedPwd === REPORT_PASSWORD) {
+    if (localStorage.getItem(PASSWORD_KEY) === REPORT_DUMMY_PWD) {
       setPhase('HANDLE');
       const savedHandle = localStorage.getItem('dr:report:handle');
       if (savedHandle) setHandle(savedHandle);
@@ -36,13 +32,24 @@ export default function ReportPage() {
 
   const verifyPassword = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (password !== REPORT_PASSWORD) {
-      setPasswordError('Mật khẩu không đúng.');
-      return;
-    }
     setPasswordError(null);
-    localStorage.setItem(PASSWORD_KEY, REPORT_PASSWORD);
-    setPhase('HANDLE');
+    // Verify password server-side via a probe (using empty handle returns 401 if wrong)
+    try {
+      const r = await fetch('/api/report/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password, handle: '__probe__' }),
+      });
+      if (r.status === 401) {
+        setPasswordError('Mật khẩu không đúng.');
+        return;
+      }
+      // 200 or 400 (handle invalid) both mean password was right
+      localStorage.setItem(PASSWORD_KEY, REPORT_DUMMY_PWD);
+      setPhase('HANDLE');
+    } catch {
+      setPasswordError('Lỗi mạng. Vui lòng thử lại.');
+    }
   };
 
   const submitHandle = async (e?: React.FormEvent) => {
@@ -64,7 +71,7 @@ export default function ReportPage() {
       const r = await fetch('/api/report/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ handle: trimmed }),
+        body: JSON.stringify({ password: REPORT_DUMMY_PWD, handle: trimmed }),
       });
       const data = await r.json();
       if (!r.ok || !data.guestId) {
@@ -88,12 +95,12 @@ export default function ReportPage() {
     }
   };
 
-  // Connect socket
-  useSocket(
-    guestId && phase === 'CHAT'
-      ? { roomToken: 'REPORT_ROOM', guestId }
-      : null
+  // Memoize session object to avoid socket reconnect on every render
+  const socketSession = useMemo(
+    () => (guestId && phase === 'CHAT' ? { roomToken: 'REPORT_ROOM', guestId } : null),
+    [guestId, phase]
   );
+  useSocket(socketSession);
 
   // Password screen
   if (phase === 'PASSWORD') {
@@ -120,11 +127,14 @@ export default function ReportPage() {
               <input
                 id="password"
                 type="password"
+                inputMode="text"
+                autoComplete="current-password"
+                enterKeyHint="go"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoFocus
                 placeholder="Nhập mật khẩu..."
-                className="w-full px-4 py-3 rounded-xl bg-dark-800/80 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
+                className="w-full px-4 py-3 text-base rounded-xl bg-dark-800/80 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
               />
             </div>
             {passwordError && (
@@ -179,12 +189,15 @@ export default function ReportPage() {
               <input
                 id="handle"
                 type="text"
+                inputMode="text"
+                autoComplete="off"
+                enterKeyHint="go"
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
                 maxLength={24}
                 autoFocus
                 placeholder="VD: Nhân viên A..."
-                className="w-full px-4 py-3 rounded-xl bg-dark-800/80 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
+                className="w-full px-4 py-3 text-base rounded-xl bg-dark-800/80 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
               />
               <p className="text-xs text-gray-500 mt-1">Tối đa 24 ký tự.</p>
             </div>

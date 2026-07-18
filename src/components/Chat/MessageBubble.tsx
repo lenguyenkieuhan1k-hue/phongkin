@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import MessageContent from './MessageContent';
 
 interface Message {
@@ -21,7 +21,7 @@ interface MessageBubbleProps {
   formatTime: (date: string) => string;
 }
 
-export default function MessageBubble({ message, isOwn, formatTime }: MessageBubbleProps) {
+function MessageBubble({ message, isOwn, formatTime }: MessageBubbleProps) {
   const [showActions, setShowActions] = useState(false);
   const isRecalled = !!message.recalledAt;
 
@@ -90,3 +90,5 @@ export default function MessageBubble({ message, isOwn, formatTime }: MessageBub
     </div>
   );
 }
+
+export default memo(MessageBubble);

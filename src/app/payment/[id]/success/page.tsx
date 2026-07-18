@@ -45,7 +45,7 @@ export default function PaymentSuccessPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-950 py-10 flex items-center justify-center">
+    <div className="min-h-dvh bg-dark-950 py-10 flex items-center justify-center">
       <div className="max-w-md w-full mx-auto px-4">
         <div className="card p-8 text-center space-y-5">
           <div className="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">

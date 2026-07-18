@@ -99,7 +99,7 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-950 py-10">
+    <div className="min-h-dvh bg-dark-950 py-10">
       <TermsModal
         isOpen={showTermsModal}
         type={termsType}

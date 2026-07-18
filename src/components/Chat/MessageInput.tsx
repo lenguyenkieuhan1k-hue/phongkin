@@ -502,7 +502,8 @@ export default function MessageInput({}: MessageInputProps) {
                 onKeyDown={handleKeyDown}
                 placeholder={pendingAttachment ? 'Thêm chú thích...' : 'Nhắn lời yêu thương...'}
                 rows={1}
-                className="w-full bg-gradient-to-br from-dark-700/80 to-dark-800/80 border border-dark-600 rounded-xl px-4 py-3 pr-12 text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-transparent transition-all duration-200"
+                enterKeyHint="send"
+                className="w-full bg-gradient-to-br from-dark-700/80 to-dark-800/80 border border-dark-600 rounded-xl px-4 py-3 pr-12 text-base text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-transparent transition-all duration-200"
                 style={{ minHeight: '48px', maxHeight: '150px' }}
               />
             )}
