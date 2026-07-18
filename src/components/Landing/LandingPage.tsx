@@ -1,7 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 import { PRICING, DURATION_LABELS, MEMBER_LIMITS, formatVND, type Duration } from '@/lib/pricing';
+
+type Theme = 'meeting' | 'romance';
 
 const FEATURES = [
   {
@@ -43,6 +46,14 @@ const FEATURES = [
 ];
 
 export default function LandingPage() {
+  // Landing page mặc định dùng theme meeting (slate/neutral)
+  // → Tránh màu đỏ hồng vốn dành riêng cho theme tình yêu
+  useEffect(() => {
+    const saved = (typeof window !== 'undefined' && localStorage.getItem('pk:landing-theme')) as Theme | null;
+    const theme: Theme = saved === 'romance' ? 'romance' : 'meeting';
+    document.documentElement.setAttribute('data-theme', theme);
+  }, []);
+
   return (
     <div className="min-h-dvh bg-dark-950">
       {/* Header */}
@@ -66,8 +77,8 @@ export default function LandingPage() {
       <section className="max-w-4xl mx-auto px-4 py-20 text-center">
         <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight mb-4">
           Họp ở đây,{' '}
-          <span className="bg-gradient-to-r from-accent-400 to-accent-600 bg-clip-text text-transparent">
-            dừng ở đây
+          <span className="bg-gradient-to-r from-accent-300 to-accent-500 bg-clip-text text-transparent">
+            an toàn ở đây
           </span>
         </h1>
         <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-10">
@@ -181,7 +192,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-dark-800 mt-16">
         <div className="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
-          © 2026 Phòng Kín · Họp ở đây, dừng ở đây.
+          © 2026 Phòng Kín · Họp ở đây, an toàn ở đây.
         </div>
       </footer>
     </div>

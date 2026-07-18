@@ -217,7 +217,7 @@ export default function PrivacyPage() {
       {/* Footer */}
       <footer className="border-t border-dark-800 mt-16">
         <div className="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
-          © 2026 Phòng Kín · Họp ở đây, dừng ở đây.
+          © 2026 Phòng Kín · Họp ở đây, an toàn ở đây.
         </div>
       </footer>
     </div>

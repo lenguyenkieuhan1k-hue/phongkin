@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===========================================
+   THEME SYSTEM: rose (tình yêu) | slate (cuộc họp)
+   Default = rose. Override bằng <html data-theme="meeting">
+   =========================================== */
+:root,
+:root[data-theme="romance"] {
+  --accent-50: 255 241 242;
+  --accent-100: 255 228 230;
+  --accent-200: 254 205 211;
+  --accent-300: 253 164 175;
+  --accent-400: 251 113 133;
+  --accent-500: 244 63 94;
+  --accent-600: 225 29 72;
+  --accent-700: 190 18 60;
+  --accent-800: 159 18 57;
+  --accent-900: 136 19 55;
+  --accent-950: 76 5 25;
+}
+
+:root[data-theme="meeting"] {
+  --accent-50: 248 250 252;
+  --accent-100: 241 245 249;
+  --accent-200: 226 232 240;
+  --accent-300: 203 213 225;
+  --accent-400: 148 163 184;
+  --accent-500: 100 116 139;
+  --accent-600: 71 85 105;
+  --accent-700: 51 65 85;
+  --accent-800: 30 41 59;
+  --accent-900: 15 23 42;
+  --accent-950: 2 6 23;
+}
+
+/* Áp dụng smooth transition khi đổi theme */
+html {
+  transition: background-color 200ms ease;
+}
+
 @layer base {
   * {
     border-color: theme('colors.dark.700');
