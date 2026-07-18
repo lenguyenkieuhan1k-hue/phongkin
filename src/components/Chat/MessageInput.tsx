@@ -3,7 +3,9 @@
 import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from 'react';
 import { useMessageStore } from '@/hooks/useStore';
 
-interface MessageInputProps {}
+interface MessageInputProps {
+  guestId?: string;
+}
 
 interface AttachmentResult {
   type: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'FILE';
@@ -29,7 +31,7 @@ interface PendingAttachment {
 
 const MAX_VOICE_SECONDS = 5 * 60; // 5 phút
 
-export default function MessageInput({}: MessageInputProps) {
+export default function MessageInput({ guestId }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -165,7 +167,7 @@ export default function MessageInput({}: MessageInputProps) {
     const optimisticMessage = {
       id: tempId,
       roomId: '',
-      senderGuestId: (window as any).__myGuestId || '',
+      senderGuestId: guestId || '',
       senderHandle: '',
       type,
       body: trimmed || undefined,
@@ -411,8 +413,7 @@ export default function MessageInput({}: MessageInputProps) {
     <div
       className="border-t border-accent-400/20 bg-gradient-to-t from-dark-900 to-dark-950 p-4 relative"
       style={{
-        // Đẩy input lên trên bàn phím: padding-bottom = safe-area + keyboard height
-        paddingBottom: 'calc(1rem + env(safe-area-inset-bottom) + var(--keyboard-height, 0px))',
+        paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
       }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
