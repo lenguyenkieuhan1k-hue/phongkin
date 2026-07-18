@@ -285,7 +285,16 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
   if (!room || !guestId) return <LoadingScreen />;
 
   return (
-    <div className="min-h-dvh flex flex-col bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 relative">
+    <div
+      className="flex flex-col bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 relative"
+      style={{
+        // Mobile keyboard: thu nhỏ container theo visual viewport
+        // để MessageList scroll đúng và MessageInput không che tin nhắn
+        height: '100dvh',
+        maxHeight: 'var(--visual-viewport-height, 100dvh)',
+        minHeight: 'var(--visual-viewport-height, 100dvh)',
+      }}
+    >
       {/* Floating hearts background (ẩn nếu theme = meeting) */}
       {theme === 'romance' && (
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -299,8 +308,8 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
       )}
 
       <RoomHeader inviteToken={inviteToken} />
-      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full relative z-10 pb-safe">
-        <div className="flex-1 overflow-hidden">
+      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full relative z-10 min-h-0">
+        <div className="flex-1 overflow-hidden min-h-0">
           <MessageList guestId={guestId} />
         </div>
         <MessageInput />

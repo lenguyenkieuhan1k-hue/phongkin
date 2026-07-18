@@ -122,6 +122,9 @@ export function useSocket(session: SessionData | null) {
     });
 
     socket.on(SOCKET_EVENTS.MESSAGE_NEW, (message: any) => {
+      const current = useMessageStore.getState().messages;
+      // Dedupe: nếu đã có message cùng id thì bỏ qua (tránh double-render khi optimistic update)
+      if (current.some((m) => m.id === message.id)) return;
       addMessage(message);
     });
 

@@ -13,6 +13,7 @@ interface Message {
   attachments?: any[];
   createdAt: string;
   recalledAt?: string | null;
+  _optimistic?: boolean;
 }
 
 interface MessageBubbleProps {
@@ -24,6 +25,7 @@ interface MessageBubbleProps {
 function MessageBubble({ message, isOwn, formatTime }: MessageBubbleProps) {
   const [showActions, setShowActions] = useState(false);
   const isRecalled = !!message.recalledAt;
+  const isOptimistic = !!(message as any)._optimistic;
 
   const handleRecall = () => {
     if (typeof window === 'undefined') return;
@@ -55,7 +57,7 @@ function MessageBubble({ message, isOwn, formatTime }: MessageBubbleProps) {
             isOwn
               ? 'bg-gradient-to-br from-accent-500 to-accent-600 text-white rounded-br-md shadow-lg shadow-accent-500/25'
               : 'bg-gradient-to-br from-dark-700 to-dark-800 text-gray-100 rounded-bl-md border border-accent-400/10'
-          } ${isRecalled ? 'opacity-50 italic' : ''}`}
+          } ${isRecalled ? 'opacity-50 italic' : ''} ${isOptimistic ? 'opacity-70' : ''}`}
         >
           {isRecalled ? (
             <p className="text-sm text-gray-400 italic">Tin nhắn đã được thu hồi</p>

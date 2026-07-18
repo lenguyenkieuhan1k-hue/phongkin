@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from 'react';
+import { useMessageStore } from '@/hooks/useStore';
 
 interface MessageInputProps {}
 
@@ -157,6 +158,30 @@ export default function MessageInput({}: MessageInputProps) {
         id: pendingAttachment.attachmentId,
       };
     }
+
+    // Optimistic update: add message vào store NGAY với temp ID để user thấy ngay.
+    // Khi server broadcast MESSAGE_NEW về, dedupe sẽ loại bỏ bản duplicate.
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const optimisticMessage = {
+      id: tempId,
+      roomId: '',
+      senderGuestId: (window as any).__myGuestId || '',
+      senderHandle: '',
+      type,
+      body: trimmed || undefined,
+      attachments: pendingAttachment
+        ? [{
+            id: pendingAttachment.attachmentId,
+            storageKey: pendingAttachment.storageKey,
+            mimeType: pendingAttachment.mimeType,
+            byteSize: pendingAttachment.byteSize,
+          }]
+        : undefined,
+      createdAt: new Date().toISOString(),
+      recalledAt: null,
+      _optimistic: true,
+    } as any;
+    useMessageStore.getState().addMessage(optimisticMessage);
 
     (window as any).__socket?.emit('message:send', {
       type,
@@ -350,9 +375,45 @@ export default function MessageInput({}: MessageInputProps) {
     };
   }, []);
 
+  // === Mobile keyboard handling: track visualViewport để input không bị che ===
+  // iOS Safari + Chrome Android resize viewport khi mở bàn phím.
+  // 100dvh không đủ → dùng visualViewport.height + safe-area-inset-bottom làm padding-bottom.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+
+    const root = document.documentElement;
+    const update = () => {
+      const vv = window.visualViewport!;
+      const layoutHeight = window.innerHeight;
+      // Keyboard height = chênh lệch giữa layout viewport và visual viewport
+      const keyboardHeight = Math.max(0, layoutHeight - vv.height);
+      // Lưu vào CSS variable để các component khác cũng dùng được
+      root.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
+      root.style.setProperty('--visual-viewport-height', `${vv.height}px`);
+    };
+
+    update();
+    window.visualViewport.addEventListener('resize', update);
+    window.visualViewport.addEventListener('scroll', update);
+    window.addEventListener('focusin', update);
+    window.addEventListener('focusout', update);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('scroll', update);
+      window.removeEventListener('focusin', update);
+      window.removeEventListener('focusout', update);
+      root.style.setProperty('--keyboard-height', '0px');
+    };
+  }, []);
+
   return (
     <div
       className="border-t border-accent-400/20 bg-gradient-to-t from-dark-900 to-dark-950 p-4 relative"
+      style={{
+        // Đẩy input lên trên bàn phím: padding-bottom = safe-area + keyboard height
+        paddingBottom: 'calc(1rem + env(safe-area-inset-bottom) + var(--keyboard-height, 0px))',
+      }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

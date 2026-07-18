@@ -75,6 +75,7 @@ interface Message {
   }>;
   createdAt: string;
   recalledAt?: string | null;
+  _optimistic?: boolean;
 }
 
 interface MessageState {
