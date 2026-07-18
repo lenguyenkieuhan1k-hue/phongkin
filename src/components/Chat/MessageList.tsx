@@ -95,7 +95,7 @@ export default function MessageList({ guestId }: MessageListProps) {
         className="
           absolute inset-0 overflow-y-auto
           px-4 pt-2
-          pb-[calc(0.75rem+env(safe-area-inset-bottom)+var(--input-height,0px))]
+          pb-[calc(0.75rem+env(safe-area-inset-bottom))]
           space-y-3
           overscroll-behavior-y-contain
           scroll-smooth-mobile

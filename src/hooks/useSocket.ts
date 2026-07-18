@@ -122,7 +122,7 @@ export function useSocket(session: SessionData | null) {
     });
 
     socket.on(SOCKET_EVENTS.MESSAGE_NEW, (message: any) => {
-      console.log('[useSocket] MESSAGE_NEW', { id: message.id, senderGuestId: message.senderGuestId, body: message.body });
+      console.log('[useSocket] MESSAGE_NEW', { id: message.id, senderGuestId: message.senderGuestId, body: message.body, hasInStore: useMessageStore.getState().messages.some((m) => m.id === message.id) });
       const state = useMessageStore.getState();
       // 1) Exact id match (server reload hoặc re-broadcast)
       if (state.messages.some((m) => m.id === message.id)) return;
@@ -136,6 +136,7 @@ export function useSocket(session: SessionData | null) {
         return delta < 10000;
       });
       if (idx !== -1) {
+        console.log('[useSocket] replacing optimistic at idx', idx);
         useMessageStore.setState((s) => ({
           messages: s.messages.map((m, i) => (i === idx ? { ...message, _optimistic: false } : m)),
         }));
@@ -143,6 +144,7 @@ export function useSocket(session: SessionData | null) {
       }
 
       // 3) Brand-new message (từ user khác) — add bình thường
+      console.log('[useSocket] adding new message');
       addMessage(message);
     });
 

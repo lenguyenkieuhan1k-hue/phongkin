@@ -288,7 +288,7 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
     <div
       className="flex flex-col bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 relative"
       style={{
-        minHeight: '100dvh',
+        height: '100dvh',
         maxHeight: '100dvh',
       }}
     >
@@ -305,20 +305,20 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
       )}
 
       <RoomHeader inviteToken={inviteToken} />
-      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full relative z-10 min-h-0 pb-[env(safe-area-inset-bottom)]">
+      <main
+        className="flex-1 flex flex-col max-w-4xl mx-auto w-full relative z-10 min-h-0 pb-[env(safe-area-inset-bottom)]"
+        style={{
+          // Mobile keyboard: container co lại theo visual viewport
+          // → MessageInput đẩy lên tự nhiên, MessageList không bị che
+          height: 'var(--visual-viewport-height, 100dvh)',
+          maxHeight: 'var(--visual-viewport-height, 100dvh)',
+        }}
+      >
         <div className="flex-1 overflow-hidden min-h-0">
           <MessageList guestId={guestId} />
         </div>
+        <MessageInput guestId={guestId} />
       </main>
-      <div
-        className="fixed left-0 right-0 z-20"
-        id="message-input-wrapper"
-        style={{ bottom: 'var(--keyboard-height, 0px)' }}
-      >
-        <div className="max-w-4xl mx-auto w-full">
-          <MessageInput guestId={guestId} />
-        </div>
-      </div>
     </div>
   );
 }

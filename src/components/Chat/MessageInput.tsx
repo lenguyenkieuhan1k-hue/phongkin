@@ -389,24 +389,6 @@ export default function MessageInput({ guestId }: MessageInputProps) {
     };
   }, []);
 
-  // ResizeObserver: set --input-height để MessageList biết padding cho input fixed
-  const inputWrapperRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = inputWrapperRef.current;
-    if (!el) return;
-    const root = document.documentElement;
-    const updateHeight = () => {
-      root.style.setProperty('--input-height', `${el.offsetHeight}px`);
-    };
-    updateHeight();
-    const ro = new ResizeObserver(updateHeight);
-    ro.observe(el);
-    return () => {
-      ro.disconnect();
-      root.style.setProperty('--input-height', '0px');
-    };
-  }, []);
-
   // === Mobile keyboard handling: track visualViewport để input không bị che ===
   // iOS Safari + Chrome Android resize viewport khi mở bàn phím.
   // 100dvh không đủ → dùng visualViewport.height + safe-area-inset-bottom làm padding-bottom.
@@ -441,7 +423,6 @@ export default function MessageInput({ guestId }: MessageInputProps) {
 
   return (
     <div
-      ref={inputWrapperRef}
       className="border-t border-accent-400/20 bg-gradient-to-t from-dark-900 to-dark-950 p-4 relative"
       style={{
         paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))',
