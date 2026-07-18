@@ -122,9 +122,26 @@ export function useSocket(session: SessionData | null) {
     });
 
     socket.on(SOCKET_EVENTS.MESSAGE_NEW, (message: any) => {
-      const current = useMessageStore.getState().messages;
-      // Dedupe: nếu đã có message cùng id thì bỏ qua (tránh double-render khi optimistic update)
-      if (current.some((m) => m.id === message.id)) return;
+      const state = useMessageStore.getState();
+      // 1) Exact id match (server reload hoặc re-broadcast)
+      if (state.messages.some((m) => m.id === message.id)) return;
+
+      // 2) Replace optimistic: tìm bubble tạm có cùng senderGuestId + body + trong vòng 10s
+      const idx = state.messages.findIndex((m) => {
+        if (!(m as any)._optimistic) return false;
+        if (m.senderGuestId !== message.senderGuestId) return false;
+        if ((m.body || '') !== (message.body || '')) return false;
+        const delta = Math.abs(new Date(message.createdAt).getTime() - new Date(m.createdAt).getTime());
+        return delta < 10000;
+      });
+      if (idx !== -1) {
+        useMessageStore.setState((s) => ({
+          messages: s.messages.map((m, i) => (i === idx ? { ...message, _optimistic: false } : m)),
+        }));
+        return;
+      }
+
+      // 3) Brand-new message (từ user khác) — add bình thường
       addMessage(message);
     });
 

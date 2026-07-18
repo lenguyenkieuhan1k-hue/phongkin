@@ -162,7 +162,7 @@ export default function MessageInput({ guestId }: MessageInputProps) {
     }
 
     // Optimistic update: add message vào store NGAY với temp ID để user thấy ngay.
-    // Khi server broadcast MESSAGE_NEW về, dedupe sẽ loại bỏ bản duplicate.
+    // Khi server broadcast MESSAGE_NEW về, useSocket sẽ replace bubble này bằng message thật.
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const optimisticMessage = {
       id: tempId,
@@ -184,12 +184,24 @@ export default function MessageInput({ guestId }: MessageInputProps) {
       _optimistic: true,
     } as any;
     useMessageStore.getState().addMessage(optimisticMessage);
+    if (typeof window !== 'undefined') {
+      console.log('[MessageInput] optimistic added', { tempId, guestId, body: trimmed });
+    }
 
-    (window as any).__socket?.emit('message:send', {
-      type,
-      body: trimmed || undefined,
-      attachmentMeta,
-    });
+    const sock = (window as any).__socket;
+    if (!sock?.connected) {
+      console.warn('[MessageInput] socket not connected, message not sent');
+      if (typeof window !== 'undefined') {
+        alert('Mất kết nối. Vui lòng đợi reconnect và thử lại.');
+      }
+    } else {
+      sock.emit('message:send', {
+        type,
+        body: trimmed || undefined,
+        attachmentMeta,
+      });
+      console.log('[MessageInput] emit message:send', { type, body: trimmed });
+    }
 
     setPendingAttachment(null);
     setIsSending(false);
