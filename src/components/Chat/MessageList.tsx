@@ -57,17 +57,28 @@ export default function MessageList({ guestId }: MessageListProps) {
 
   // === Auto-scroll: chỉ khi sticky, dùng scrollTop thay vì scrollIntoView ===
   // scrollIntoView có thể trigger ancestor scroll (cả window) → giật header
+  //
+  // Dep `messages` (không phải messages.length) vì khi replace optimistic bằng
+  // server message: length giữ nguyên nhưng array reference đổi → vẫn phải scroll
+  // để theo kịp layout shift (textarea grow, bubble replace có senderHandle...).
   useEffect(() => {
     if (!stickyRef.current) return;
     const container = containerRef.current;
     if (!container) return;
 
-    // Instant scroll: tránh smooth animation compete với typing/layout shift
-    // Yêu cầu browser flush DOM trước khi set scrollTop (tin nhắn mới vừa render)
-    requestAnimationFrame(() => {
-      container.scrollTop = container.scrollHeight;
+    // Đợi 2 frame để React flush + browser paint DOM mới (đặc biệt sau khi
+    // replace bubble có senderHandle đầy đủ → height khác bubble cũ)
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
     });
-  }, [messages.length, typingUsers.length]);
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+    };
+  }, [messages, typingUsers.length]);
 
   // === User manual scroll detection (chỉ dùng để cập nhật UI "jump to bottom") ===
   // IntersectionObserver đã lo phần sticky, nhưng ta cần re-render khi user
@@ -87,8 +98,20 @@ export default function MessageList({ guestId }: MessageListProps) {
 
   const showJumpButton = !stickyRef.current && messages.length > 0;
 
+  // Debug: đếm re-render để xác nhận MessageList có re-render khi store update
+  const [renderCount, setRenderCount] = useState(0);
+  useEffect(() => {
+    setRenderCount((c) => c + 1);
+    console.log('[MessageList] rendered', { count: messages.length, messages: messages.map((m) => ({ id: m.id.slice(0, 8), senderGuestId: m.senderGuestId.slice(0, 8), body: m.body })) });
+  }, [messages.length]);
+
   return (
     <div className="relative flex-1 min-h-0">
+      {/* Debug overlay: hiển thị trực tiếp trên màn hình */}
+      <div className="absolute top-1 right-2 z-50 bg-red-600 text-white text-xs px-2 py-1 rounded font-mono opacity-80 select-none pointer-events-none">
+        MSG:{messages.length} R:{renderCount} GID:{guestId.slice(0, 8)}
+      </div>
+
       <div
         ref={containerRef}
         onScroll={handleScroll}
