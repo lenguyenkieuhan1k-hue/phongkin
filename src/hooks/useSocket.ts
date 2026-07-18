@@ -26,6 +26,7 @@ export function useSocket(session: SessionData | null) {
   const setTyping = useMessageStore((s) => s.setTyping);
   const router = useRouter();
   const toast = useToast();
+  const showToast = toast.toast;
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
   const typingTimerRef = useRef<Record<string, NodeJS.Timeout>>({});
 
@@ -115,7 +116,7 @@ export function useSocket(session: SessionData | null) {
     socket.on(SOCKET_EVENTS.ROOM_CLOSED, (data: { roomId: string; reason: string }) => {
       console.log('[useSocket] room closed:', data);
       setRoomStatus('EXPIRED');
-      toast('Phòng đã đóng. Dữ liệu sẽ được xóa.', 'info');
+      showToast('Phòng đã đóng. Dữ liệu sẽ được xóa.', 'info');
       clearRoom();
       router.replace('/');
     });
