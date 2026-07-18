@@ -66,6 +66,14 @@ export default function MessageList({ guestId }: MessageListProps) {
     const container = containerRef.current;
     if (!container) return;
 
+    // Debug: log container dimensions
+    console.log('[MessageList] scroll effect', {
+      clientHeight: container.clientHeight,
+      scrollHeight: container.scrollHeight,
+      scrollTop: container.scrollTop,
+      msgCount: messages.length,
+    });
+
     // Đợi 2 frame để React flush + browser paint DOM mới (đặc biệt sau khi
     // replace bubble có senderHandle đầy đủ → height khác bubble cũ)
     let raf2 = 0;
