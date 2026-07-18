@@ -53,7 +53,7 @@ function MessageBubble({ message, isOwn, formatTime }: MessageBubbleProps) {
         )}
 
         <div
-          className={`relative rounded-2xl px-4 py-2.5 border-2 border-red-500 ${
+          className={`relative rounded-2xl px-4 py-2.5 ${
             isOwn
               ? 'bg-gradient-to-br from-accent-500 to-accent-600 text-white rounded-br-md shadow-lg shadow-accent-500/25'
               : 'bg-gradient-to-br from-dark-700 to-dark-800 text-gray-100 rounded-bl-md border border-accent-400/10'

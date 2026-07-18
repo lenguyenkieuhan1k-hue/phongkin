@@ -1,0 +1,19 @@
+fix(chat): root cause - main height 100dvh ghi de flex-1, bubble bi cat
+
+Phat hien tu log: clientHeight=20, scrollHeight=244
+container chi cao 20px du co 5 messages
+
+Bug: main co height: 100dvh inline ghi de flex-1 cua parent
+main = 100dvh (full screen) overflow ra ngoai viewport
+MessageList ben trong main bi cat phia duoi
+
+Fix:
+1. Bo height inline tren main, chi giu flex-1
+2. Bo div wrapper flex-1 overflow-hidden thua
+3. MessageList root = flex-1 min-h-0 overflow-y-auto
+4. MessageInput la sibling cua MessageList trong main flex-col
+5. Bo debug overlay, border do, console log thua
+
+Khi keyboard mo: container cha 100dvh khong doi
+MessageList van hien thi, scroll binh thuong
+MessageInput nam trong flex chain (khong fixed)

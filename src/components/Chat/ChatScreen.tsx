@@ -307,16 +307,8 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
       <RoomHeader inviteToken={inviteToken} />
       <main
         className="flex-1 flex flex-col max-w-4xl mx-auto w-full relative z-10 min-h-0 pb-[env(safe-area-inset-bottom)]"
-        style={{
-          // Mobile keyboard: container co lại theo visual viewport
-          // → MessageInput đẩy lên tự nhiên, MessageList không bị che
-          height: 'var(--visual-viewport-height, 100dvh)',
-          maxHeight: 'var(--visual-viewport-height, 100dvh)',
-        }}
       >
-        <div className="flex-1 overflow-hidden min-h-0">
-          <MessageList guestId={guestId} />
-        </div>
+        <MessageList guestId={guestId} />
         <MessageInput guestId={guestId} />
       </main>
     </div>
