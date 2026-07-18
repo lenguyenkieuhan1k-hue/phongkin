@@ -147,4 +147,23 @@
   .min-h-dvh {
     min-height: 100dvh;
   }
+
+  /* Tắt tap highlight xanh trên mobile (iOS Safari + Chrome Android) */
+  .tap-highlight-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Custom smooth scroll tối ưu cho mobile */
+  .scroll-smooth-mobile {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    /* Tránh momentum scroll bị break khi layout shift (bàn phím ẩn/hiện) */
+    transform: translateZ(0);
+    will-change: scroll-position;
+  }
+
+  /* Tắt bounce overscroll trên iOS khi đang ở đầu/cuối list chat */
+  .overscroll-none {
+    overscroll-behavior: none;
+  }
 }
