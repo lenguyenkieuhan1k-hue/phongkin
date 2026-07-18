@@ -122,6 +122,7 @@ export function useSocket(session: SessionData | null) {
     });
 
     socket.on(SOCKET_EVENTS.MESSAGE_NEW, (message: any) => {
+      console.log('[useSocket] MESSAGE_NEW', { id: message.id, senderGuestId: message.senderGuestId, body: message.body });
       const state = useMessageStore.getState();
       // 1) Exact id match (server reload hoặc re-broadcast)
       if (state.messages.some((m) => m.id === message.id)) return;

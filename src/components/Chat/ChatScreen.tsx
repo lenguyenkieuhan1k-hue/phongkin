@@ -312,6 +312,7 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
       </main>
       <div
         className="fixed left-0 right-0 z-20"
+        id="message-input-wrapper"
         style={{ bottom: 'var(--keyboard-height, 0px)' }}
       >
         <div className="max-w-4xl mx-auto w-full">

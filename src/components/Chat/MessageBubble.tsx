@@ -26,6 +26,9 @@ function MessageBubble({ message, isOwn, formatTime }: MessageBubbleProps) {
   const [showActions, setShowActions] = useState(false);
   const isRecalled = !!message.recalledAt;
   const isOptimistic = !!(message as any)._optimistic;
+  if (typeof window !== 'undefined' && (message as any)._debug) {
+    console.log('[MessageBubble] render', { id: message.id, senderGuestId: message.senderGuestId, isOwn, body: message.body });
+  }
 
   const handleRecall = () => {
     if (typeof window === 'undefined') return;
