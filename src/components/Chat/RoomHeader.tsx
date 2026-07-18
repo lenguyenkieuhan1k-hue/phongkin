@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRoomStore } from '@/hooks/useStore';
 import { useRoomTimer } from '@/hooks/useRoomTimer';
+import { CallButton } from '../Call';
 
 interface RoomHeaderProps {
   inviteToken: string;
@@ -58,6 +59,8 @@ export default function RoomHeader({ inviteToken }: RoomHeaderProps) {
               </svg>
               <span className="text-xs font-mono text-accent-300">{timeLeft}</span>
             </div>
+
+            <CallButton />
 
             <button
               onClick={handleCopy}

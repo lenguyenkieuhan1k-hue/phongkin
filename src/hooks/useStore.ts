@@ -102,3 +102,37 @@ export const useMessageStore = create<MessageState>((set) => ({
   setTyping: (guestIds) => set({ typingUsers: guestIds }),
   clear: () => set({ messages: [], typingUsers: [] }),
 }));
+
+export type VoiceCallStatus = 'idle' | 'calling' | 'ringing' | 'connected' | 'ended';
+
+interface VoiceCallState {
+  status: VoiceCallStatus;
+  peerId: string | null;
+  peerName: string | null;
+  callerId: string | null;
+  callerSocketId: string | null;
+  calleeSocketId: string | null;
+  isMuted: boolean;
+  isConnecting: boolean;
+  callStartedAt: number | null;
+  setVoiceCall: (patch: Partial<Omit<VoiceCallState, 'setVoiceCall' | 'resetVoiceCall'>>) => void;
+  resetVoiceCall: () => void;
+}
+
+const defaultVoiceCall = {
+  status: 'idle' as VoiceCallStatus,
+  peerId: null,
+  peerName: null,
+  callerId: null,
+  callerSocketId: null,
+  calleeSocketId: null,
+  isMuted: false,
+  isConnecting: false,
+  callStartedAt: null,
+};
+
+export const useVoiceCallStore = create<VoiceCallState>((set) => ({
+  ...defaultVoiceCall,
+  setVoiceCall: (patch) => set(patch),
+  resetVoiceCall: () => set(defaultVoiceCall),
+}));

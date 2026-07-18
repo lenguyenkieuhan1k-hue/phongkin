@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import { useRoomStore, useMessageStore } from './useStore';
 import { SOCKET_EVENTS } from '@/socket/events';
+import { setVoiceSocket } from './useVoiceCall';
 import { useToast } from '@/components/Toast';
 
 let socket: Socket | null = null;
@@ -62,6 +63,7 @@ export function useSocket(session: SessionData | null) {
 
       if (typeof window !== 'undefined') {
         (window as any).__socket = socket;
+        setVoiceSocket(socket);
       }
     }
 
@@ -194,7 +196,10 @@ export function useSocket(session: SessionData | null) {
       if (socket) {
         socket.disconnect();
         socket = null;
-        if (typeof window !== 'undefined') (window as any).__socket = null;
+        if (typeof window !== 'undefined') {
+          (window as any).__socket = null;
+          setVoiceSocket(null);
+        }
       }
     };
   }, [session?.roomToken, session?.guestId]);

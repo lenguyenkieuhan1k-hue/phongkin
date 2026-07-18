@@ -4,6 +4,7 @@ import { authMiddleware } from '../auth.middleware';
 import { handleChatEvents } from './chat.handler';
 import { handleMessageEvents } from './message.handler';
 import { handlePresenceEvents } from './presence.handler';
+import { handleVoiceCallEvents } from './voice-call.handler';
 
 export function setupSocketHandlers(io: SocketIOServer): void {
   io.use(authMiddleware);
@@ -16,6 +17,7 @@ export function setupSocketHandlers(io: SocketIOServer): void {
     handleChatEvents(io, socket);
     handleMessageEvents(io, socket);
     handlePresenceEvents(io, socket);
+    handleVoiceCallEvents(io, socket);
 
     socket.on('disconnect', () => {
       console.log(

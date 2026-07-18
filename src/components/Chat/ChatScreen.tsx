@@ -6,6 +6,7 @@ import RoomHeader from './RoomHeader';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import LoadingScreen from './LoadingScreen';
+import { CallButton, IncomingCall, ActiveCall } from '../Call';
 import { useSocket } from '@/hooks/useSocket';
 import { useRoomStore } from '@/hooks/useStore';
 
@@ -305,6 +306,8 @@ export default function ChatScreen({ inviteToken }: ChatScreenProps) {
       )}
 
       <RoomHeader inviteToken={inviteToken} />
+      <IncomingCall />
+      <ActiveCall />
       <main
         className="flex-1 flex flex-col max-w-4xl mx-auto w-full relative z-10 min-h-0 pb-[env(safe-area-inset-bottom)]"
       >
