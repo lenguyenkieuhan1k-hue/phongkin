@@ -1,4 +1,5 @@
 // DarkTalk - Clean Build
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/components/Toast';
 
