@@ -35,6 +35,24 @@
   --accent-950: 2 6 23;
 }
 
+/* ===========================================
+   UI CHÍNH (Landing/Create/Terms/Privacy): tone xanh dương
+   Dùng cho các page public bên ngoài — KHÔNG ảnh hưởng chat (chat dùng dark-* riêng)
+   =========================================== */
+:root {
+  --bg-50: 239 246 255;   /* blue-50 */
+  --bg-100: 219 234 254;  /* blue-100 */
+  --bg-200: 191 219 254;  /* blue-200 */
+  --bg-300: 147 197 253;  /* blue-300 */
+  --bg-400: 96 165 250;   /* blue-400 */
+  --bg-500: 59 130 246;   /* blue-500 */
+  --bg-600: 37 99 235;    /* blue-600 */
+  --bg-700: 29 78 216;    /* blue-700 */
+  --bg-800: 30 58 138;    /* blue-800 */
+  --bg-900: 23 37 84;     /* blue-900 */
+  --bg-950: 15 23 42;     /* slate-900 */
+}
+
 /* Áp dụng smooth transition khi đổi theme */
 html {
   transition: background-color 200ms ease;
@@ -51,7 +69,7 @@ html {
   }
 
   body {
-    @apply bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800 text-gray-100;
+    @apply bg-gradient-to-br from-bg-950 via-bg-900 to-bg-800 text-gray-100;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -78,12 +96,12 @@ html {
   }
 
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #fda4af, #fb7185);
+    background: linear-gradient(to bottom, #93c5fd, #3b82f6);
     border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #fecdd3, #f43f5e);
+    background: linear-gradient(to bottom, #60a5fa, #2563eb);
   }
 }
 

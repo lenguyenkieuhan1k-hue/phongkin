@@ -120,7 +120,7 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-dark-950 py-10">
+    <div className="min-h-dvh bg-bg-950 py-10">
       <div className="max-w-md mx-auto px-4">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-white">Quét QR để thanh toán</h1>
@@ -136,7 +136,7 @@ export default function PaymentPage() {
               <img src={qrContent} alt="QR thanh toán" className="w-64 h-64" />
             </div>
           ) : (
-            <div className="w-64 h-64 mx-auto bg-dark-700 rounded-xl flex items-center justify-center">
+            <div className="w-64 h-64 mx-auto bg-bg-700 rounded-xl flex items-center justify-center">
               <span className="text-gray-500">Đang tải QR...</span>
             </div>
           )}
@@ -149,7 +149,7 @@ export default function PaymentPage() {
             </div>
           </div>
 
-          <div className="bg-dark-900 rounded-lg p-3 flex items-center justify-between">
+          <div className="bg-bg-900 rounded-lg p-3 flex items-center justify-between">
             <div className="text-left">
               <div className="text-xs text-gray-500">Nội dung chuyển khoản</div>
               <div className="font-mono text-white">{sepayRef}</div>

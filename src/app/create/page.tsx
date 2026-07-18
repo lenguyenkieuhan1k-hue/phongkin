@@ -99,7 +99,7 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="min-h-dvh bg-dark-950 py-10">
+    <div className="min-h-dvh bg-bg-950 py-10">
       <TermsModal
         isOpen={showTermsModal}
         type={termsType}
@@ -137,7 +137,7 @@ export default function CreatePage() {
                   className={`p-4 rounded-xl border-2 transition-all ${
                     duration === d
                       ? 'border-accent-500 bg-accent-600/10 text-white'
-                      : 'border-dark-700 hover:border-dark-600 text-gray-300'
+                      : 'border-bg-700 hover:border-bg-600 text-gray-300'
                   }`}
                 >
                   <div className="text-lg font-semibold">{DURATION_LABELS[d]}</div>
@@ -159,7 +159,7 @@ export default function CreatePage() {
                   className={`p-4 rounded-xl border-2 transition-all ${
                     maxMembers === m
                       ? 'border-accent-500 bg-accent-600/10 text-white'
-                      : 'border-dark-700 hover:border-dark-600 text-gray-300'
+                      : 'border-bg-700 hover:border-bg-600 text-gray-300'
                   }`}
                 >
                   <div className="text-xl font-bold">{m}</div>
@@ -169,7 +169,7 @@ export default function CreatePage() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-dark-700">
+          <div className="pt-4 border-t border-bg-700">
             <div className="flex items-baseline justify-between">
               <span className="text-gray-400">Tổng thanh toán</span>
               <span className="text-3xl font-bold text-accent-400">{formatVND(price)}</span>
@@ -180,7 +180,7 @@ export default function CreatePage() {
           </div>
 
           {/* Terms Agreement */}
-          <div className="pt-4 border-t border-dark-700 space-y-3">
+          <div className="pt-4 border-t border-bg-700 space-y-3">
             <div className="flex items-start gap-3">
               <input
                 type="checkbox"
@@ -195,7 +195,7 @@ export default function CreatePage() {
                     setAgreedAt(null);
                   }
                 }}
-                className="mt-1 w-5 h-5 rounded border-dark-600 bg-dark-800 text-accent-600 focus:ring-accent-500 focus:ring-offset-dark-900"
+                className="mt-1 w-5 h-5 rounded border-bg-600 bg-bg-800 text-accent-600 focus:ring-accent-500 focus:ring-offset-bg-900"
               />
               <label htmlFor="agree-terms" className="text-sm text-gray-300 leading-relaxed">
                 Tôi đã đọc, hiểu và đồng ý với{' '}

@@ -46,7 +46,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-dvh bg-dark-900 antialiased overscroll-none">
+      <body className="min-h-dvh bg-bg-900 antialiased overscroll-none">
         <ToastProvider>
           {children}
         </ToastProvider>

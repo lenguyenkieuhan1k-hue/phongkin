@@ -6,9 +6,9 @@ export const dynamic = 'force-dynamic';
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-dvh bg-dark-950">
+    <div className="min-h-dvh bg-bg-950">
       {/* Header */}
-      <header className="border-b border-dark-800">
+      <header className="border-b border-bg-800">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-600 to-accent-800 flex items-center justify-center">
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
               </p>
               
               <div className="space-y-3">
-                <div className="bg-dark-900 rounded-lg p-4">
+                <div className="bg-bg-900 rounded-lg p-4">
                   <h3 className="font-medium text-white mb-2">Thông tin thanh toán</h3>
                   <ul className="text-sm text-gray-400 space-y-1">
                     <li>• Số tiền giao dịch</li>
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
                   </p>
                 </div>
 
-                <div className="bg-dark-900 rounded-lg p-4">
+                <div className="bg-bg-900 rounded-lg p-4">
                   <h3 className="font-medium text-white mb-2">Thông tin vận hành</h3>
                   <ul className="text-sm text-gray-400 space-y-1">
                     <li>• Địa chỉ IP (được băm để chống spam, không lưu dạng gốc)</li>
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
                   </p>
                 </div>
 
-                <div className="bg-dark-900 rounded-lg p-4">
+                <div className="bg-bg-900 rounded-lg p-4">
                   <h3 className="font-medium text-white mb-2">Dữ liệu trong phòng chat (tạm thời)</h3>
                   <ul className="text-sm text-gray-400 space-y-1">
                     <li>• Tin nhắn văn bản</li>
@@ -215,7 +215,7 @@ export default function PrivacyPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-dark-800 mt-16">
+      <footer className="border-t border-bg-800 mt-16">
         <div className="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
           © 2026 Phòng Kín · Họp ở đây, an toàn ở đây.
         </div>

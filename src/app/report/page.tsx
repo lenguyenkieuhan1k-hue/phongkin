@@ -105,7 +105,7 @@ export default function ReportPage() {
   // Password screen
   if (phase === 'PASSWORD') {
     return (
-      <div className="min-h-dvh bg-gradient-to-br from-dark-950 via-dark-900 to-accent-950 flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-gradient-to-br from-bg-950 via-bg-900 to-accent-950 flex items-center justify-center p-4">
         <div className="card p-8 max-w-md w-full space-y-6 romantic-glow">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 shadow-lg shadow-accent-500/30 mb-4">
@@ -134,7 +134,7 @@ export default function ReportPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoFocus
                 placeholder="Nhập mật khẩu..."
-                className="w-full px-4 py-3 text-base rounded-xl bg-dark-800/80 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
+                className="w-full px-4 py-3 text-base rounded-xl bg-bg-800/80 border border-bg-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
               />
             </div>
             {passwordError && (
@@ -161,7 +161,7 @@ export default function ReportPage() {
   // Handle screen
   if (phase === 'HANDLE') {
     return (
-      <div className="min-h-dvh bg-gradient-to-br from-dark-950 via-dark-900 to-accent-950 flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-gradient-to-br from-bg-950 via-bg-900 to-accent-950 flex items-center justify-center p-4">
         <div className="card p-8 max-w-md w-full space-y-6 romantic-glow">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 shadow-lg shadow-accent-500/30 mb-4">
@@ -197,7 +197,7 @@ export default function ReportPage() {
                 maxLength={24}
                 autoFocus
                 placeholder="VD: Nhân viên A..."
-                className="w-full px-4 py-3 text-base rounded-xl bg-dark-800/80 border border-dark-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
+                className="w-full px-4 py-3 text-base rounded-xl bg-bg-800/80 border border-bg-600 text-white placeholder-gray-500 focus:outline-none focus:border-accent-400 focus:ring-2 focus:ring-accent-400/20 transition-all duration-200"
               />
               <p className="text-xs text-gray-500 mt-1">Tối đa 24 ký tự.</p>
             </div>
@@ -231,7 +231,7 @@ export default function ReportPage() {
   // Chat screen
   if (phase === 'CHAT' && guestId) {
     return (
-      <div className="min-h-dvh flex flex-col bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 relative">
+      <div className="min-h-dvh flex flex-col bg-gradient-to-br from-bg-950 via-bg-900 to-bg-950 relative">
         {/* Header */}
         <header className="glass px-4 py-3 flex items-center justify-between relative z-20">
           <div className="flex items-center gap-3">
@@ -251,7 +251,7 @@ export default function ReportPage() {
               localStorage.removeItem('dr:report:handle');
               window.location.href = '/report';
             }}
-            className="p-2 rounded-lg hover:bg-dark-700 text-gray-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg hover:bg-bg-700 text-gray-400 hover:text-white transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

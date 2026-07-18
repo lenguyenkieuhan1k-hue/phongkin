@@ -6,9 +6,9 @@ export const dynamic = 'force-dynamic';
 
 export default function TermsPage() {
   return (
-    <div className="min-h-dvh bg-dark-950">
+    <div className="min-h-dvh bg-bg-950">
       {/* Header */}
-      <header className="border-b border-dark-800">
+      <header className="border-b border-bg-800">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-600 to-accent-800 flex items-center justify-center">
@@ -151,7 +151,7 @@ export default function TermsPage() {
               </p>
             </section>
 
-            <section className="space-y-4 pt-4 border-t border-dark-700">
+            <section className="space-y-4 pt-4 border-t border-bg-700">
               <p className="text-gray-400 text-sm italic">
                 Lưu ý: Việc đồng ý với Điều khoản sử dụng không làm mất hoặc hạn chế các quyền và nghĩa vụ 
                 của các bên theo quy định pháp luật hiện hành của nước Cộng hòa xã hội chủ nghĩa Việt Nam.
@@ -168,7 +168,7 @@ export default function TermsPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-dark-800 mt-16">
+      <footer className="border-t border-bg-800 mt-16">
         <div className="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
           © 2026 Phòng Kín · Họp ở đây, an toàn ở đây.
         </div>

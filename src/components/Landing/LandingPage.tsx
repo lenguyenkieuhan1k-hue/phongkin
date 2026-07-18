@@ -55,12 +55,12 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-dvh bg-dark-950">
+    <div className="min-h-dvh bg-bg-950">
       {/* Header */}
-      <header className="border-b border-dark-800">
+      <header className="border-b border-bg-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-600 to-accent-800 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-bg-500 to-bg-700 flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
@@ -122,13 +122,13 @@ export default function LandingPage() {
           <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th className="text-left text-sm font-medium text-gray-400 p-3 border-b border-dark-700">
+                <th className="text-left text-sm font-medium text-gray-400 p-3 border-b border-bg-700">
                   Thời gian
                 </th>
                 {MEMBER_LIMITS.map((m) => (
                   <th
                     key={m}
-                    className="text-center text-sm font-medium text-gray-400 p-3 border-b border-dark-700"
+                    className="text-center text-sm font-medium text-gray-400 p-3 border-b border-bg-700"
                   >
                     {m} người
                   </th>
@@ -138,13 +138,13 @@ export default function LandingPage() {
             <tbody>
               {(Object.keys(DURATION_LABELS) as unknown as Duration[]).map((d) => (
                 <tr key={d}>
-                  <td className="p-3 border-b border-dark-800 font-medium text-white">
+                  <td className="p-3 border-b border-bg-800 font-medium text-white">
                     {DURATION_LABELS[d]}
                   </td>
                   {MEMBER_LIMITS.map((m) => (
                     <td
                       key={m}
-                      className="text-center p-3 border-b border-dark-800 text-accent-400 font-semibold"
+                      className="text-center p-3 border-b border-bg-800 text-accent-400 font-semibold"
                     >
                       {formatVND(PRICING[`${d}_${m}` as keyof typeof PRICING])}
                     </td>
@@ -190,7 +190,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-dark-800 mt-16">
+      <footer className="border-t border-bg-800 mt-16">
         <div className="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
           © 2026 Phòng Kín · Họp ở đây, an toàn ở đây.
         </div>

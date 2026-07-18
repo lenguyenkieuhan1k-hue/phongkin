@@ -45,7 +45,7 @@ export default function PaymentSuccessPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-dark-950 py-10 flex items-center justify-center">
+    <div className="min-h-dvh bg-bg-950 py-10 flex items-center justify-center">
       <div className="max-w-md w-full mx-auto px-4">
         <div className="card p-8 text-center space-y-5">
           <div className="w-16 h-16 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
@@ -61,7 +61,7 @@ export default function PaymentSuccessPage() {
 
           {inviteToken ? (
             <>
-              <div className="bg-dark-900 rounded-lg p-4 text-left">
+              <div className="bg-bg-900 rounded-lg p-4 text-left">
                 <div className="text-xs text-gray-500 mb-2">Link mời tham gia phòng</div>
                 <div className="font-mono text-sm text-accent-400 break-all">{inviteUrl}</div>
               </div>

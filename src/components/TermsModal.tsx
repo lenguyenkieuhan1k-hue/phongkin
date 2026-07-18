@@ -57,10 +57,10 @@ export default function TermsModal({ isOpen, type, onClose, onAgree }: TermsModa
       {/* Modal */}
       <div
         ref={modalRef}
-        className="relative w-full max-w-3xl max-h-[85vh] mx-4 bg-dark-900 rounded-2xl border border-dark-700 shadow-2xl flex flex-col overflow-hidden animate-in"
+        className="relative w-full max-w-3xl max-h-[85vh] mx-4 bg-bg-900 rounded-2xl border border-bg-700 shadow-2xl flex flex-col overflow-hidden animate-in"
       >
         {/* Header */}
-        <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-dark-700">
+        <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-bg-700">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-600 to-accent-800 flex items-center justify-center">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +78,7 @@ export default function TermsModal({ isOpen, type, onClose, onAgree }: TermsModa
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-dark-800 text-gray-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg hover:bg-bg-800 text-gray-400 hover:text-white transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -144,7 +144,7 @@ export default function TermsModal({ isOpen, type, onClose, onAgree }: TermsModa
                 </p>
               </section>
 
-              <div className="pt-4 border-t border-dark-700 space-y-3">
+              <div className="pt-4 border-t border-bg-700 space-y-3">
                 <p className="text-xs text-gray-500 italic">
                   Để biết thêm chi tiết, vui lòng xem trang{' '}
                   <Link
@@ -205,7 +205,7 @@ export default function TermsModal({ isOpen, type, onClose, onAgree }: TermsModa
                 </p>
               </section>
 
-              <div className="pt-4 border-t border-dark-700 space-y-3">
+              <div className="pt-4 border-t border-bg-700 space-y-3">
                 <p className="text-xs text-gray-500 italic">
                   Để biết thêm chi tiết, vui lòng xem trang{' '}
                   <Link
@@ -228,7 +228,7 @@ export default function TermsModal({ isOpen, type, onClose, onAgree }: TermsModa
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 px-6 py-4 border-t border-dark-700 bg-dark-800/50">
+        <div className="flex-shrink-0 px-6 py-4 border-t border-bg-700 bg-bg-800/50">
           {!hasScrolledToBottom ? (
             <p className="text-xs text-gray-500 text-center">
               Vui lòng cuộn xuống để đọc toàn bộ nội dung trước khi đồng ý
